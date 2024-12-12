@@ -17,23 +17,21 @@ export const createLessonSchema = z.object({
     .min(1, { message: "Sequence must be a positive number" }),
   pdf: z
     .any()
+    .refine((files) => files?.size || 0 <= MAX_FILE_SIZE, {
+      message: "Max file size is 500MB",
+    })
     .refine(
-      (files) => files?.[0]?.size <= MAX_FILE_SIZE,
-      "Max file size is 500MB"
-    )
-    .refine(
-      (files) => ACCEPTED_PDF_TYPES.includes(files?.[0]?.type),
+      (files) => ACCEPTED_PDF_TYPES.includes(files?.type),
       "Only .pdf files are accepted"
     )
     .optional(),
   video: z
     .any()
+    .refine((files) => files?.size || 0 <= MAX_FILE_SIZE, {
+      message: "Max file size is 500MB",
+    })
     .refine(
-      (files) => files?.[0]?.size <= MAX_FILE_SIZE,
-      "Max file size is 500MB"
-    )
-    .refine(
-      (files) => ACCEPTED_VIDEO_TYPES.includes(files?.[0]?.type),
+      (files) => ACCEPTED_VIDEO_TYPES.includes(files?.type),
       "Only .mp4 and .webm files are accepted"
     )
     .optional(),

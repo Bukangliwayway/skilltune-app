@@ -1,3 +1,4 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,14 +8,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MousePointer, PlusCircle, PlusSquareIcon } from "lucide-react";
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { LessonsResponse } from "./lessons.types";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { createLessonSchema, CreateLessonSchema } from "./lessons.schema";
 import { v4 as uuid } from "uuid";
-import { pdfUploadHandler } from "@/actions/lessons";
+import { fileUploadHandler } from "@/actions/lessons";
+import { LessonForm } from "./LessonForm";
 
 type Props = {
   lessons: LessonsResponse;
@@ -25,6 +27,7 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
   const [currentLesson, setCurrentLesson] = useState<CreateLessonSchema | null>(
     null
   );
+
   const form = useForm<CreateLessonSchema>({
     resolver: zodResolver(createLessonSchema),
     defaultValues: {
@@ -42,25 +45,56 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
   const submitLessonHandler: SubmitHandler<CreateLessonSchema> = async (
     data
   ) => {
-    const {
-      title,
-      description,
-      sequence,
-      pdf,
-      video,
-      intent = "create",
-    } = data;
+    try {
+      const { pdf, video } = data;
+      let pdfUrl, videoUrl;
 
-    const handlePdfUpload = async () => {
-      const uniqueId = uuid();
-      const fileName = `category/category-${uniqueId}`;
-      const file = new File([data.pdf[0]], fileName);
-      const formData = new FormData();
-      formData.append("file", file);
+      if (pdf) {
+        try {
+          const uniqueId = uuid();
+          // Preserve original file extension
+          const originalExt = pdf[0].name.split(".").pop();
+          const fileName = `article/article-${uniqueId}.${originalExt}`;
 
-      return pdfUploadHandler(formData);
-    };
+          // Create new file while preserving the original mime type
+          const file = new File([pdf[0]], fileName, { type: pdf[0].type });
+
+          const formData = new FormData();
+          formData.append("file", file);
+
+          pdfUrl = await fileUploadHandler(formData, "pdf");
+        } catch (error) {
+          console.error("Error uploading PDF:", error);
+          throw error;
+        }
+      }
+
+      if (video) {
+        try {
+          const uniqueId = uuid();
+          // Preserve original file extension
+          const originalExt = video.name.split(".").pop();
+          const fileName = `video/video-${uniqueId}.${originalExt}`;
+
+          // Create new file while preserving the original mime type
+          const file = new File([video], fileName, { type: video.type });
+
+          const formData = new FormData();
+          formData.append("file", file);
+
+          videoUrl = await fileUploadHandler(formData, "video");
+        } catch (error) {
+          console.error("Error uploading video:", error);
+          throw error;
+        }
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error("Error submitting lesson:", error);
+    }
   };
+
   return (
     <>
       <div className="flex py-4 px-6 justify-between items-center">
@@ -75,13 +109,8 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
           }
         >
           <DialogTrigger asChild>
-            <Button>
-              <PlusSquareIcon size={24} />
-              <p>Lesson</p>
-            </Button>
             <Button
               size="sm"
-              //   className="h-8 gap-1"
               variant="outline"
               className="font-semibold"
               onClick={() => {
@@ -91,7 +120,7 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
             >
               <PlusCircle className="h-3.5 w-3.5" />
               <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Lesson
+                New Lesson
               </span>
             </Button>
           </DialogTrigger>
@@ -118,3 +147,5 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
     </>
   );
 };
+
+export default LessonsPageComponent;

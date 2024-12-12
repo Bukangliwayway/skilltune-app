@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { LessonsResponse } from "@/app/admin/lessons/lessons.types";
 import { createClient } from "@/supabase/server";
@@ -14,16 +14,33 @@ export const getAllLessons = async (): Promise<LessonsResponse> => {
   return data || [];
 };
 
-
-export const pdfUploadHandler = async (formData: FormData) => {
+export const fileUploadHandler = async (
+  formData: FormData,
+  fileType: "pdf" | "video"
+) => {
   const supabase = await createClient();
   if (!formData) return;
 
   const fileEntry = formData.get("file");
+  console.log("File entry:", fileEntry);
 
   if (!(fileEntry instanceof File)) throw new Error("Expected a file");
 
-  const fileName = fileEntry.name;
+  // Validate file type
+  const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
+  const ACCEPTED_PDF_TYPES = ["application/pdf"];
+
+  if (fileType === "video" && !ACCEPTED_VIDEO_TYPES.includes(fileEntry.type)) {
+    throw new Error(
+      "Invalid video format. Only MP4 and WebM are accepted" + fileEntry.type
+    );
+  }
+
+  if (fileType === "pdf" && !ACCEPTED_PDF_TYPES.includes(fileEntry.type)) {
+    throw new Error("Invalid file format. Only PDF is accepted ");
+  }
+
+  const fileName = `${fileType}-${Date.now()}-${fileEntry.name}`;
 
   try {
     const { data, error } = await supabase.storage
@@ -34,8 +51,8 @@ export const pdfUploadHandler = async (formData: FormData) => {
       });
 
     if (error) {
-      console.error("Error uploading image:", error);
-      throw new Error("Error uploading image");
+      console.error(`Error uploading ${fileType}:`, error);
+      throw new Error(`Error uploading ${fileType}`);
     }
 
     const {
@@ -44,8 +61,7 @@ export const pdfUploadHandler = async (formData: FormData) => {
 
     return publicUrl;
   } catch (error) {
-    console.error("Error uploading image:", error);
-    throw new Error("Error uploading image");
+    console.error(`Error uploading ${fileType}:`, error);
+    throw new Error(`Error uploading ${fileType}`);
   }
 };
-
