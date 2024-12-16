@@ -38,8 +38,19 @@ export const createLesson = async ({
 
   if (error) throw new Error(`Error creating category: ${error.message}`);
 
-  revalidatePath("/admin/categories");
+  revalidatePath("/admin/lessons");
   return data;
+};
+
+export const deleteLesson = async (id: Number) => {
+  const supabase = await createClient();
+  const { error } = await supabase.from("lessons").delete().match({ id });
+
+  if (error) {
+    throw new Error(`Error deleting Lesson: ${error.message}`);
+  }
+
+  revalidatePath("/admin/lessons");
 };
 
 export const fileUploadHandler = async (
@@ -50,7 +61,6 @@ export const fileUploadHandler = async (
   if (!formData) return;
 
   const fileEntry = formData.get("file");
-  console.log("File entry:", fileEntry);
 
   if (!(fileEntry instanceof File)) throw new Error("Expected a file");
 
@@ -118,7 +128,7 @@ export const updateLesson = async ({
     throw new Error(`Error updating product: ${error.message}`);
   }
 
-  revalidatePath("/admin/products");
+  revalidatePath("/admin/lessons");
 
   return data;
 };

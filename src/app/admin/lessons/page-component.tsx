@@ -21,6 +21,7 @@ import {
 import { v4 as uuid } from "uuid";
 import {
   createLesson,
+  deleteLesson,
   fileUploadHandler,
   updateLesson,
 } from "@/actions/lessons";
@@ -50,6 +51,21 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
   });
 
   const router = useRouter();
+
+  const deleteLessonHandler = async (id: number): Promise<void> => {
+    try {
+      if (!id) {
+        throw new Error("Lesson ID is required");
+      }
+
+      await deleteLesson(id);
+      router.refresh();
+      toast.success("Lesson deleted successfully");
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      toast.error("Failed to delete lesson");
+    }
+  };
 
   const submitLessonHandler = async (data: CreateOrUpdateLessonSchema) => {
     const {
@@ -241,6 +257,7 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
                   form={form}
                   onSubmit={submitLessonHandler}
                   defaultValues={currentLesson}
+                  onDelete={deleteLessonHandler}
                 />
               </DialogContent>
             </Dialog>
