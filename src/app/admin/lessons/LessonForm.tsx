@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { CreateLessonSchema } from "./lessons.schema";
+import {  CreateOrUpdateLessonSchema } from "./lessons.schema";
 
 type LessonFormProps = {
-  form: UseFormReturn<CreateLessonSchema>;
-  onSubmit: SubmitHandler<CreateLessonSchema>;
-  defaultValues: CreateLessonSchema | null;
+  form: UseFormReturn<CreateOrUpdateLessonSchema>;
+  onSubmit: (data: CreateOrUpdateLessonSchema) => void;
+  defaultValues: CreateOrUpdateLessonSchema | null;
 };
 
 export const LessonForm = ({
@@ -135,11 +135,7 @@ export const LessonForm = ({
             )}
           />
         </div>
-        <Button
-          disabled={isSubmitting}
-          type="submit"
-          className="w-full"
-        >
+        <Button disabled={isSubmitting} type="submit" className="w-full">
           Submit
         </Button>
       </form>

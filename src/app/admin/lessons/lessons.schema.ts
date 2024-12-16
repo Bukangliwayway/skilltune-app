@@ -1,13 +1,14 @@
+import { title } from "process";
 import { z } from "zod";
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm"];
 const ACCEPTED_PDF_TYPES = ["application/pdf"];
 
-export const createLessonSchema = z.object({
+export const createOrUpdateLessonSchema = z.object({
   title: z
     .string()
-    .min(2, { message: "Title must be at least 2 characters long" }),
+    .min(5, { message: "Title must be at least 5 characters long" }),
   description: z
     .string()
     .min(10, { message: "Description must be at least 10 characters long" }),
@@ -42,4 +43,22 @@ export const createLessonSchema = z.object({
     .optional(),
 });
 
-export type CreateLessonSchema = z.infer<typeof createLessonSchema>;
+export type CreateOrUpdateLessonSchema = z.infer<typeof createOrUpdateLessonSchema>;
+
+export const createLessonSchemaServer = z.object({
+  title: z.string().min(5, {
+    message: "Lesson Title is required and must be at least 5 Characters long",
+  }),
+  description: z.string().min(10, {
+    message:
+      "Lesson Description is required and must be at least 10 Characters long",
+  }),
+  sequence: z
+    .number()
+    .int()
+    .min(1, { message: "Sequence must be a positive number" }),
+  pdfUrl: z.string().min(1, { message: "Lesson PDF is required" }),
+  videoUrl: z.string().min(1, { message: "Lesson Video is required" }),
+});
+
+export type CreateLessonSchemaServer = z.infer<typeof createLessonSchemaServer>;

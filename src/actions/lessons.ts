@@ -1,7 +1,13 @@
 "use server";
 
+import {
+  CreateLessonSchemaServer,
+  createLessonSchemaServer,
+  CreateOrUpdateLessonSchema,
+} from "@/app/admin/lessons/lessons.schema";
 import { LessonsResponse } from "@/app/admin/lessons/lessons.types";
 import { createClient } from "@/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export const getAllLessons = async (): Promise<LessonsResponse> => {
   const supabase = await createClient();
@@ -12,6 +18,29 @@ export const getAllLessons = async (): Promise<LessonsResponse> => {
 
   if (error) throw new Error(`Error fetching categories: ${error.message}`);
   return data || [];
+};
+
+export const createLesson = async ({
+  title,
+  description,
+  sequence,
+  pdfUrl,
+  videoUrl,
+}: CreateLessonSchemaServer) => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.from("lessons").insert({
+    title,
+    description,
+    sequence,
+    pdf_url: pdfUrl,
+    video_url: videoUrl,
+  });
+
+  if (error) throw new Error(`Error creating category: ${error.message}`);
+
+  revalidatePath("/admin/categories");
+  return data;
 };
 
 export const fileUploadHandler = async (

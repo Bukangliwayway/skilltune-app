@@ -13,10 +13,14 @@ import { LessonsResponse } from "./lessons.types";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { createLessonSchema, CreateLessonSchema } from "./lessons.schema";
+import {
+  createOrUpdateLessonSchema,
+  CreateOrUpdateLessonSchema,
+} from "./lessons.schema";
 import { v4 as uuid } from "uuid";
-import { fileUploadHandler } from "@/actions/lessons";
+import { createLesson, fileUploadHandler } from "@/actions/lessons";
 import { LessonForm } from "./LessonForm";
+import { toast } from "sonner";
 
 type Props = {
   lessons: LessonsResponse;
@@ -24,12 +28,11 @@ type Props = {
 
 const LessonsPageComponent: FC<Props> = ({ lessons }) => {
   const [isCreateLessonModalOpen, setIsCreateLessonModalOpen] = useState(false);
-  const [currentLesson, setCurrentLesson] = useState<CreateLessonSchema | null>(
-    null
-  );
+  const [currentLesson, setCurrentLesson] =
+    useState<CreateOrUpdateLessonSchema | null>(null);
 
-  const form = useForm<CreateLessonSchema>({
-    resolver: zodResolver(createLessonSchema),
+  const form = useForm<CreateOrUpdateLessonSchema>({
+    resolver: zodResolver(createOrUpdateLessonSchema),
     defaultValues: {
       title: "New Lesson",
       description:
@@ -42,27 +45,34 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
 
   const router = useRouter();
 
-  const submitLessonHandler: SubmitHandler<CreateLessonSchema> = async (
-    data
-  ) => {
+  const submitLessonHandler = async (data: CreateOrUpdateLessonSchema) => {
+    const {
+      title,
+      description,
+      sequence,
+      pdf,
+      video,
+      intent = "create",
+    } = data;
     try {
-      const { pdf, video } = data;
-      let pdfUrl, videoUrl;
+      let pdfUrl: string = "",
+        videoUrl: string = "";
 
       if (pdf) {
         try {
           const uniqueId = uuid();
           // Preserve original file extension
-          const originalExt = pdf[0].name.split(".").pop();
+          const originalExt = pdf.name.split(".").pop();
           const fileName = `article/article-${uniqueId}.${originalExt}`;
 
           // Create new file while preserving the original mime type
-          const file = new File([pdf[0]], fileName, { type: pdf[0].type });
+          const file = new File([pdf], fileName, { type: pdf.type });
 
           const formData = new FormData();
           formData.append("file", file);
 
-          pdfUrl = await fileUploadHandler(formData, "pdf");
+          const uploadedUrl = await fileUploadHandler(formData, "pdf");
+          pdfUrl = uploadedUrl || "";
         } catch (error) {
           console.error("Error uploading PDF:", error);
           throw error;
@@ -82,15 +92,33 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
           const formData = new FormData();
           formData.append("file", file);
 
-          videoUrl = await fileUploadHandler(formData, "video");
+          const uploadedUrl = await fileUploadHandler(formData, "video");
+          videoUrl = uploadedUrl || "";
         } catch (error) {
+          toast.error("Error uploading name");
           console.error("Error uploading video:", error);
           throw error;
         }
       }
 
+      switch (intent) {
+        case "create": {
+          await createLesson({
+            title: title,
+            description: description,
+            sequence: Number(sequence),
+            pdfUrl: pdfUrl,
+            videoUrl: videoUrl,
+          });
+          break;
+        }
+      }
+      form.reset();
       router.refresh();
+      setIsCreateLessonModalOpen(false);
+      toast.success("Lesson created successfully");
     } catch (error) {
+      toast.error("Error submitting lesson");
       console.error("Error submitting lesson:", error);
     }
   };
