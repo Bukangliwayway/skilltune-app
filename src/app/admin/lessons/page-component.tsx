@@ -59,7 +59,9 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
       }
 
       await deleteLesson(id);
+      form.reset();
       router.refresh();
+      setOpenLessonId(null);
       toast.success("Lesson deleted successfully");
     } catch (error) {
       console.error("Error deleting lesson:", error);
@@ -171,13 +173,15 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
           <MousePointer className="rotate-90" size={24} />
         </div>
         <Dialog
-          open={openLessonId === -1}
+          open={openLessonId === -1} // Check for -1 instead of null
           onOpenChange={(open: boolean) => {
             setOpenLessonId(open ? -1 : null);
+            console.log(openLessonId);
             if (!open) {
               setCurrentLesson(null);
             }
           }}
+          key={-1}
         >
           <DialogTrigger asChild>
             <Button
@@ -185,6 +189,17 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
               variant="outline"
               className="font-semibold"
               onClick={() => {
+                form.reset({
+                  title: "New Lesson",
+                  description:
+                    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium, consectetur!",
+                  sequence: 1,
+                  intent: "create",
+                  pdf: undefined,
+                  video: undefined,
+                  id: undefined,
+                });
+                setOpenLessonId(-1);
                 setCurrentLesson(null);
               }}
             >
@@ -251,7 +266,7 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
                 }}
               >
                 <DialogHeader>
-                  <DialogTitle>Create Lesson</DialogTitle>
+                  <DialogTitle>Update Lesson</DialogTitle>
                 </DialogHeader>
                 <LessonForm
                   form={form}
