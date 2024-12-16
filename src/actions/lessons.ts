@@ -1,11 +1,10 @@
 "use server";
 
+import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
 import {
-  CreateLessonSchemaServer,
-  createLessonSchemaServer,
-  CreateOrUpdateLessonSchema,
-} from "@/app/admin/lessons/lessons.schema";
-import { LessonsResponse } from "@/app/admin/lessons/lessons.types";
+  LessonsResponse,
+  UpdateLessonSchema,
+} from "@/app/admin/lessons/lessons.types";
 import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 
@@ -93,4 +92,33 @@ export const fileUploadHandler = async (
     console.error(`Error uploading ${fileType}:`, error);
     throw new Error(`Error uploading ${fileType}`);
   }
+};
+
+export const updateLesson = async ({
+  title,
+  description,
+  sequence,
+  pdf_url,
+  video_url,
+  id,
+}: UpdateLessonSchema) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("lessons")
+    .update({
+      title,
+      description,
+      sequence,
+      pdf_url,
+      video_url,
+    })
+    .match({ id });
+
+  if (error) {
+    throw new Error(`Error updating product: ${error.message}`);
+  }
+
+  revalidatePath("/admin/products");
+
+  return data;
 };

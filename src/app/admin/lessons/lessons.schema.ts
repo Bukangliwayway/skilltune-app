@@ -41,9 +41,12 @@ export const createOrUpdateLessonSchema = z.object({
       message: "Intent must be either create or update",
     })
     .optional(),
+  id: z.string().optional(),
 });
 
-export type CreateOrUpdateLessonSchema = z.infer<typeof createOrUpdateLessonSchema>;
+export type CreateOrUpdateLessonSchema = z.infer<
+  typeof createOrUpdateLessonSchema
+>;
 
 export const createLessonSchemaServer = z.object({
   title: z.string().min(5, {
