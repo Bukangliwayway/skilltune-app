@@ -186,7 +186,7 @@ export const updateQuizDeckIdForCards = async (newQuizDeckId: number) => {
   const { data: cardsToUpdate, error: fetchError } = await supabase
     .from("quiz_cards")
     .select()
-    .eq("quiz_deck_id", -1);
+    .is("quiz_deck_id", null);
 
   if (fetchError) throw fetchError;
   if (!cardsToUpdate || cardsToUpdate.length === 0) return;
@@ -195,7 +195,7 @@ export const updateQuizDeckIdForCards = async (newQuizDeckId: number) => {
   const { data: updatedCards, error: updateError } = await supabase
     .from("quiz_cards")
     .update({ quiz_deck_id: newQuizDeckId })
-    .eq("quiz_deck_id", -1)
+    .is("quiz_deck_id", null)
     .select();
 
   if (updateError) throw updateError;
@@ -283,7 +283,7 @@ export const fileUploadHandler = async (
             question: validatedData.question,
             explanation: validatedData.explanation,
             item_score: validatedData.itemScore,
-            quiz_deck_id: quiz_deck_id ? quiz_deck_id : -1,
+            quiz_deck_id: quiz_deck_id || null,
             sequence: validatedData.sequence,
           })
           .select()

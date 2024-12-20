@@ -90,7 +90,7 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
 
         const uploadedUrl = await fileUploadHandler(
           formData,
-          id ? parseInt(id) : -1
+          id ? parseInt(id) : null
         );
         csvUrl = uploadedUrl?.csvUrl || "";
       } catch (error) {

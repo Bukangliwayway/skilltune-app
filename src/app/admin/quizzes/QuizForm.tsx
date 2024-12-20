@@ -133,9 +133,11 @@ export const QuizForm = ({
               <FormControl className="flex items-center justify-center h-full">
                 <Button
                   className="w-full h-10 bg-green-600 hover:bg-green-700"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent form submission
                     window.open(quiz.csv_version, "_blank");
                   }}
+                  type="button" 
                 >
                   Download CSV
                 </Button>
