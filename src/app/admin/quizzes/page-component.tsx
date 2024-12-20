@@ -24,6 +24,7 @@ import {
   deleteQuiz,
   fileUploadHandler,
   updateQuiz,
+  updateQuizDeckIdForCards,
 } from "@/actions/quizzes";
 import { QuizForm } from "./QuizForm";
 import { toast } from "sonner";
@@ -87,8 +88,11 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadedUrl = await fileUploadHandler(formData);
-        csvUrl = uploadedUrl || "";
+        const uploadedUrl = await fileUploadHandler(
+          formData,
+          id ? parseInt(id) : -1
+        );
+        csvUrl = uploadedUrl?.csvUrl || "";
       } catch (error) {
         console.error("Error uploading PDF:", error);
         throw error;
@@ -98,12 +102,13 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
     try {
       switch (intent) {
         case "create": {
-          await createQuiz({
+          const quizDeck = await createQuiz({
             title: title,
             description: description,
             lesson_id: Number(lesson_id),
             csvUrl: csvUrl,
           });
+          await updateQuizDeckIdForCards(quizDeck.id);
           form.reset();
           router.refresh();
           setOpenQuizId(null);
