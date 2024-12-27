@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/supabase/server";
+import { log } from "console";
+import { toast } from "sonner";
 
 export const authenticate = async (email: string, password: string) => {
   const supabase = await createClient();
@@ -10,9 +12,12 @@ export const authenticate = async (email: string, password: string) => {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.log("Error: ", error);
+      return false;
+    }
+    return true;
   } catch (error) {
-    console.log("AUTHENTICATION ERROR", error);
     throw error;
   }
 };
