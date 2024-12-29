@@ -1,42 +1,97 @@
 "use server";
 
+import { AuthResponse, UserProfile } from "@/app/auth/auth.types";
 import { createClient } from "@/supabase/server";
-import { log } from "console";
-import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
-export const authenticate = async (email: string, password: string) => {
+export const authenticate = async (
+  email: string,
+  password: string
+): Promise<AuthResponse> => {
   const supabase = await createClient();
+
   try {
-    const { error } = await supabase.auth.signInWithPassword({
+    // Attempt login
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    if (error) {
-      console.log("Error: ", error);
-      return false;
+    if (signInError) {
+      return { user: null, error: signInError.message };
     }
-    return true;
+
+    // Get authenticated user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        user: null,
+        error: userError?.message || "Authentication failed",
+      };
+    }
+
+    // Get user profile data
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single<UserProfile>();
+
+    if (profileError || !profile) {
+      await supabase.auth.signOut();
+      return {
+        user: null,
+        error: "Failed to fetch user profile",
+      };
+    }
+
+    // Verify admin access
+    if (profile.type !== "ADMIN") {
+      await supabase.auth.signOut();
+      return {
+        user: null,
+        error: "Access denied: Admin privileges required",
+      };
+    }
+
+    // Return combined user data
+    return {
+      user: {
+        ...profile,
+        email: user.email || profile.email,
+      },
+      error: null,
+    };
   } catch (error) {
-    throw error;
+    await supabase.auth.signOut();
+    return {
+      user: null,
+      error: "An unexpected error occurred",
+    };
   }
 };
 
-export const getLatestUsers = async () => {
+export const handleSignInWithGoogle = async () => {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("users")
-    .select("id, email, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5);
+  const provider = "google";
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo:
+        process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL ||
+        "http://localhost:3000/auth/callback",
+    },
+  });
 
-  if (error) throw new Error(`Error fetching latest users: ${error.message}`);
+  if (error) {
+    return error;
+  }
 
-  return data.map(
-    (user: { id: string; email: string; created_at: string | null }) => ({
-      id: user.id,
-      email: user.email,
-      date: user.created_at,
-    })
-  );
+  if (data.url) {
+    redirect(data.url);
+  }
 };

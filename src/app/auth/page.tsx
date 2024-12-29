@@ -1,6 +1,6 @@
 "use client";
 
-import { authenticate } from "@/actions/auth";
+import { authenticate, handleSignInWithGoogle } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { use, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -26,6 +26,23 @@ const loginSchema = z.object({
 });
 
 export default function Auth() {
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get("error");
+
+  useEffect(() => {
+    // Add debug log
+    console.log("Error param:", errorParam);
+
+    if (errorParam === "access_denied") {
+      // Add a small delay to ensure the Toaster is mounted
+      setTimeout(() => {
+        toast.error("Access denied: Admin privileges required");
+      }, 100);
+    }
+  }, [errorParam]); // Add errorParam to dependency array
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,22 +51,26 @@ export default function Auth() {
     },
   });
 
-  const [isAuthenticating, setIsAuthenticating] = useState(false);
-
-  const router = useRouter();
-
   const onSubmit = async ({ email, password }: z.infer<typeof loginSchema>) => {
     setIsAuthenticating(true);
 
     try {
-      const res = await authenticate(email, password);
-      if (!res) {
-        toast.error("Invalid credentials");
+      const { user, error } = await authenticate(email, password);
+      if (error) {
+        toast.error(error);
       }
+
       router.push("/admin");
     } catch (error) {
     } finally {
       setIsAuthenticating(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const error = await handleSignInWithGoogle();
+    if (error) {
+      toast.error(error.message);
     }
   };
 
@@ -106,6 +127,12 @@ export default function Auth() {
             </Button>
           </form>
         </Form>
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full mt-2 p-3 rounded-md bg-gray-700 text-white hover:bg-gray-600 focus:outline-none"
+        >
+          Sign In with google
+        </button>
       </div>
     </div>
   );
