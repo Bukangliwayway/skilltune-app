@@ -107,9 +107,17 @@ function createUppy(type: FileType) {
 export function FileUploader({ type, onUploadComplete }: FileUploaderProps) {
   const [uppy] = useState(() => createUppy(type));
   const toastIdRef = useRef<string | number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  uppy.on("upload", () => {
+    setIsUploading(true);
+  });
 
   uppy.on("complete", async (result) => {
     const { successful = [] } = result;
+    setIsUploading(false);
+
+    if (successful.length === 0) return;
 
     const name = successful[0].name as string;
     const key = successful[0].meta.fileKey as string;
@@ -124,7 +132,26 @@ export function FileUploader({ type, onUploadComplete }: FileUploaderProps) {
     onUploadComplete(key, name);
   });
 
+  uppy.on("cancel-all", () => {
+    setIsUploading(false);
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
+  });
+
+  uppy.on("upload-error", (file, error) => {
+    setIsUploading(false);
+    if (toastIdRef.current) {
+      toast.dismiss(toastIdRef.current);
+      toastIdRef.current = null;
+    }
+    toast.error(`Upload failed: ${error.message}`);
+  });
+
   uppy.on("progress", (progress) => {
+    if (!isUploading) return;
+
     const progressMessage = `Uploading ${
       type === "pdf" ? "PDF" : "Video"
     }... progress: ${progress}/100%`;
@@ -138,5 +165,15 @@ export function FileUploader({ type, onUploadComplete }: FileUploaderProps) {
     }
   });
 
-  return <Dashboard uppy={uppy} />;
+  return (
+    <Dashboard
+      uppy={uppy}
+      proudlyDisplayPoweredByUppy={false}
+      hidePauseResumeButton
+      hideProgressAfterFinish
+      singleFileFullScreen
+      height="55vh"
+      className="!h-[60vh] !w-full !border-none !shadow-none !p-0"
+    />
+  );
 }
