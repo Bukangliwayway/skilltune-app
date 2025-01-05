@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.654.0",
+    "@aws-sdk/s3-presigned-post": "^3.654.0",
+    "@aws-sdk/s3-request-presigner": "^3.654.0",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-dropdown-menu": "^2.1.2",
@@ -16,6 +19,12 @@
     "@radix-ui/react-slot": "^1.1.0",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.2",
+    "@uppy/aws-s3": "^4.1.0",
+    "@uppy/core": "^4.2.1",
+    "@uppy/dashboard": "^4.1.0",
+    "@uppy/react": "^4.0.2",
+    "@uppy/status-bar": "^4.0.3",
+    "@uppy/xhr-upload": "^4.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",

@@ -1,17 +1,15 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Input } from "@/components/ui/input";
+// components/lessons/LessonForm.tsx
+import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { CreateOrUpdateLessonSchema } from "./lessons.schema";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -19,48 +17,145 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import { useState } from "react";
+import { UploadDialog } from "./uploader/upload-dialog";
 
-type LessonFormProps = {
-  form: UseFormReturn<CreateOrUpdateLessonSchema>;
-  onSubmit: (data: CreateOrUpdateLessonSchema) => void;
-  defaultValues: CreateOrUpdateLessonSchema | null;
-  onDelete?: (id: number) => Promise<void>;
-};
+interface FileItem {
+  key: string;
+  filename: string;
+}
 
-export const LessonForm = ({
-  form,
-  onSubmit,
-  defaultValues,
+interface LessonFormData {
+  title: string;
+  sequence: number;
+  description: string;
+}
+
+interface LessonFormProps {
+  form: UseFormReturn<LessonFormData>;
+  onSubmit: (data: LessonFormData) => Promise<void>;
+  onDelete: (id: number) => Promise<void>;
+  onVideoUpload: (key: string, name: string) => void;
+  onPDFUpload: (key: string, name: string) => void;
+  onVideoDelete: (key: string) => Promise<void>;
+  onPDFDelete: (key: string) => Promise<void>;
+  onFileDownload: (url: string, filename: string) => void;
+  pdfFile: FileItem | null;
+  videoFile: FileItem | null;
+  isSubmitting: boolean;
+}
+
+interface FileSectionProps {
+  label: string;
+  type: "PDF" | "Videos";
+  file: FileItem | null;
+  onUpload: (key: string, name: string) => void;
+  onDelete: (key: string) => Promise<void>;
+  onDownload: (url: string, filename: string) => void;
+}
+
+const FileSection = ({
+  label,
+  type,
+  file,
+  onUpload,
   onDelete,
-}: LessonFormProps) => {
-  const isSubmitting = form.formState.isSubmitting;
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (defaultValues) {
-      form.reset(defaultValues);
-    }
-  }, [defaultValues, form]);
+  onDownload,
+}: FileSectionProps) => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleDelete = async () => {
-    const id = parseInt(form.getValues("id") || "0");
-    console.log("Delete button clicked");
-    console.log(onDelete);
-    
-    
-    if (onDelete && !isNaN(id)) {
-      try {
-        await onDelete(id);
-        setIsDeleteModalOpen(false);
-      } catch (error) {
-        console.error("Error in handleDelete:", error);
-      }
+    if (file) {
+      await onDelete(file.key);
+      setIsDeleteModalOpen(false);
     }
   };
 
   return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <FormLabel>{label}</FormLabel>
+        <UploadDialog type={type} onFileUploaded={onUpload} />
+      </div>
+
+      {file && (
+        <div className="relative">
+          <div
+            className="border rounded-md p-4 cursor-pointer group"
+            onClick={() => onDownload(`/api/files/${file.key}`, file.filename)}
+          >
+            {/* Placeholder box for file preview */}
+            <div className="w-full aspect-video bg-muted rounded-sm flex items-center justify-center">
+              {type === "Videos" ? "Video Thumbnail" : "PDF Preview"}
+            </div>
+
+            {/* Delete button */}
+            <button
+              className="absolute top-2 right-2 p-1 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDeleteModalOpen(true);
+              }}
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Filename */}
+            <p className="mt-2 text-sm text-muted-foreground truncate">
+              {file.filename}
+            </p>
+          </div>
+
+          <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Delete {type === "Videos" ? "Video" : "PDF"}
+                </DialogTitle>
+              </DialogHeader>
+              <p>Are you sure you want to delete {file.filename}?</p>
+              <DialogFooter>
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  type="button"
+                >
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export function LessonForm({
+  form,
+  onSubmit,
+  onDelete,
+  onVideoUpload,
+  onPDFUpload,
+  onVideoDelete,
+  onPDFDelete,
+  onFileDownload,
+  pdfFile,
+  videoFile,
+  isSubmitting,
+}: LessonFormProps) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleDelete = async () => {
+    await onDelete(1); // You'll need to pass the actual ID here
+    setIsDeleteModalOpen(false);
+  };
+
+  return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Left Section */}
         <div className="flex gap-4">
           <FormField
             control={form.control}
@@ -85,7 +180,6 @@ export const LessonForm = ({
                 <FormControl>
                   <Input
                     type="number"
-                    step="1"
                     min="1"
                     disabled={isSubmitting}
                     {...field}
@@ -101,6 +195,7 @@ export const LessonForm = ({
           />
         </div>
 
+        {/* Description Field */}
         <FormField
           control={form.control}
           name="description"
@@ -120,96 +215,63 @@ export const LessonForm = ({
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="video"
-            render={({ field: { value, onChange, ...field } }) => (
-              <FormItem>
-                <FormLabel>Video Lesson</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="video/*"
-                    disabled={isSubmitting}
-                    onChange={(e) => onChange(e.target.files?.[0])}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        {/* Right Section */}
+        <div className="space-y-6">
+          <FileSection
+            label="PDF Lesson"
+            type="PDF"
+            file={pdfFile}
+            onUpload={onPDFUpload}
+            onDelete={onPDFDelete}
+            onDownload={onFileDownload}
           />
 
-          <FormField
-            control={form.control}
-            name="pdf"
-            render={({ field: { value, onChange, ...field } }) => (
-              <FormItem>
-                <FormLabel>PDF Article</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept=".pdf"
-                    disabled={isSubmitting}
-                    onChange={(e) => onChange(e.target.files?.[0])}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <FileSection
+            label="Video Lesson"
+            type="Videos"
+            file={videoFile}
+            onUpload={onVideoUpload}
+            onDelete={onVideoDelete}
+            onDownload={onFileDownload}
           />
         </div>
+
+        {/* Action Buttons */}
         <div className="flex gap-4">
-          <Button
-            disabled={isSubmitting}
-            type="submit"
-            className={
-              form.getValues("intent") === "update" ? "w-1/2" : "w-full"
-            }
-          >
-            {form.getValues("intent") === "update" ? "Update" : "Submit"}
+          <Button disabled={isSubmitting} type="submit" className="w-1/2">
+            Update
           </Button>
 
-          {form.getValues("intent") === "update" && (
-            <>
-              <Button
-                type="button"
-                variant="destructive"
-                className="w-1/2"
-                onClick={() => setIsDeleteModalOpen(true)}
-              >
-                Delete
-              </Button>
-
-              <Dialog
-                open={isDeleteModalOpen}
-                onOpenChange={setIsDeleteModalOpen}
-              >
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Lesson</DialogTitle>
-                  </DialogHeader>
-                  <p>
-                    Are you sure you want to delete {form.getValues("title")}?
-                  </p>
-                  <DialogFooter>
-                    <Button
-                      variant="destructive"
-                      onClick={handleDelete}
-                      disabled={isSubmitting}
-                      type="button"
-                    >
-                      {isSubmitting ? "Deleting..." : "Delete"}
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </>
-          )}
+          <Button
+            type="button"
+            variant="destructive"
+            className="w-1/2"
+            onClick={() => setIsDeleteModalOpen(true)}
+          >
+            Delete
+          </Button>
         </div>
+
+        {/* Delete Lesson Dialog */}
+        <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Lesson</DialogTitle>
+            </DialogHeader>
+            <p>Are you sure you want to delete {form.getValues("title")}?</p>
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isSubmitting}
+                type="button"
+              >
+                {isSubmitting ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </form>
     </Form>
   );
-};
+}
