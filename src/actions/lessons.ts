@@ -1,7 +1,13 @@
 "use server";
 
-import { S3Client, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand, AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
-import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
+import { PostgrestError } from "@supabase/supabase-js";
+import {
+  S3Client,
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand,
+} from "@aws-sdk/client-s3";
 import {
   LessonsResponse,
   UpdateLessonSchema,
@@ -10,6 +16,8 @@ import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 import { getUploadParams } from "./s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
+import { redirect } from "next/navigation";
 
 export const getAllLessons = async (): Promise<LessonsResponse> => {
   const supabase = await createClient();
@@ -26,8 +34,6 @@ export const createLesson = async ({
   title,
   description,
   sequence,
-  pdfUrl,
-  videoUrl,
 }: CreateLessonSchemaServer) => {
   const supabase = await createClient();
 
@@ -35,13 +41,11 @@ export const createLesson = async ({
     title,
     description,
     sequence,
-    pdf_url: pdfUrl,
-    video_url: videoUrl,
   });
 
   if (error) throw new Error(`Error creating category: ${error.message}`);
 
-  revalidatePath("/admin/lessons");
+  revalidatePath("/admin/lessons/");
   return data;
 };
 
@@ -107,6 +111,33 @@ export const fileUploadHandler = async (
   }
 };
 
+export const getLessonById = async (id: string) => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("*")
+    .match({ id })
+    .single();
+
+  if (!data) {
+    redirect("/admin/lessons");
+  }
+  if (error) {
+    const postgrestError = error as PostgrestError;
+    throw new Error(`Error fetching lesson: ${postgrestError.message}`);
+  }
+
+  return {
+    id: String(data.id),
+    title: data.title || "",
+    description: data.description || "",
+    sequence: data.sequence || 1,
+    pdf_url: data.pdf_url || "",
+    video_url: data.video_url || "",
+  };
+};
+
 export const updateLesson = async ({
   title,
   description,
@@ -160,7 +191,6 @@ export async function getS3UploadParams(
   return response;
 }
 
-
 const s3Client = new S3Client({
   region: process.env.AWS_REGION!,
   credentials: {
@@ -194,8 +224,6 @@ export async function createMultipartUpload(
     throw new Error("Failed to create multipart upload");
   }
 }
-
-
 
 export async function prepareUploadPart(
   key: string,

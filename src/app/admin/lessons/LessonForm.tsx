@@ -1,5 +1,4 @@
 // components/lessons/LessonForm.tsx
-import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,40 +19,7 @@ import {
 import { X } from "lucide-react";
 import { useState } from "react";
 import { UploadDialog } from "./uploader/upload-dialog";
-
-interface FileItem {
-  key: string;
-  filename: string;
-}
-
-interface LessonFormData {
-  title: string;
-  sequence: number;
-  description: string;
-}
-
-interface LessonFormProps {
-  form: UseFormReturn<LessonFormData>;
-  onSubmit: (data: LessonFormData) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-  onVideoUpload: (key: string, name: string) => void;
-  onPDFUpload: (key: string, name: string) => void;
-  onVideoDelete: (key: string) => Promise<void>;
-  onPDFDelete: (key: string) => Promise<void>;
-  onFileDownload: (url: string, filename: string) => void;
-  pdfFile: FileItem | null;
-  videoFile: FileItem | null;
-  isSubmitting: boolean;
-}
-
-interface FileSectionProps {
-  label: string;
-  type: "PDF" | "Videos";
-  file: FileItem | null;
-  onUpload: (key: string, name: string) => void;
-  onDelete: (key: string) => Promise<void>;
-  onDownload: (url: string, filename: string) => void;
-}
+import { FileSectionProps, LessonFormProps } from "./lessons.types";
 
 const FileSection = ({
   label,
