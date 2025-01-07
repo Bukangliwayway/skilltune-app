@@ -12,10 +12,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { UpdateLessonFormSchema } from "../lessons.schema";
-import { updateLesson } from "@/actions/lessons";
+import { deleteAsset, deleteLesson, updateLesson } from "@/actions/lessons";
 import { toast } from "sonner";
-import { FileItem, LessonFormData, LessonPageComponentProps } from "../lessons.types";
+import {
+  FileItem,
+  LessonFormData,
+  LessonPageComponentProps,
+} from "../lessons.types";
 
 export default function UpdateLessonPageComponent({
   initialData,
@@ -34,27 +37,6 @@ export default function UpdateLessonPageComponent({
     },
   });
 
-  const submitLessonHandler = async (data: UpdateLessonFormSchema) => {
-    const { title, description, sequence, id } = data;
-    let pdfUrl: string = "",
-      videoUrl: string = "";
-    try {
-      await updateLesson({
-        title: title,
-        description: description,
-        sequence: Number(sequence),
-        pdf_url: pdfUrl,
-        video_url: videoUrl,
-        id,
-      });
-      form.reset();
-      router.refresh();
-      toast.success("Lesson updated successfully");
-    } catch (error) {
-      toast.error("Error submitting lesson");
-    }
-  };
-
   // File Upload Handlers
   const handleVideoUploaded = (key: string, name: string) => {
     setVideoFile({ key, filename: name });
@@ -68,7 +50,7 @@ export default function UpdateLessonPageComponent({
   const handleVideoDelete = async (key: string) => {
     try {
       setIsLoading(true);
-      // API call would go here
+      await deleteAsset(key);
       setVideoFile(null);
     } catch (error) {
       console.error("Error deleting video:", error);
@@ -80,7 +62,7 @@ export default function UpdateLessonPageComponent({
   const handlePDFDelete = async (key: string) => {
     try {
       setIsLoading(true);
-      // API call would go here
+      await deleteAsset(key);
       setPdfFile(null);
     } catch (error) {
       console.error("Error deleting PDF:", error);
@@ -96,17 +78,14 @@ export default function UpdateLessonPageComponent({
 
     try {
       setIsLoading(true);
-      await updateLesson({
+      const res = await updateLesson({
         title: data.title,
         description: data.description,
         sequence: Number(data.sequence),
-        pdf_url: pdfUrl,
-        video_url: videoUrl,
         id: data.id,
       });
 
-      form.reset();
-      router.refresh();
+      router.push(`/admin/lessons/${res.id}`); // Replace refresh with push
       toast.success("Lesson updated successfully");
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -120,8 +99,7 @@ export default function UpdateLessonPageComponent({
   const handleLessonDelete = async (id: number) => {
     try {
       setIsLoading(true);
-      // API call would go here
-      router.push("/admin/lessons");
+      await deleteLesson(id);
     } catch (error) {
       console.error("Error deleting lesson:", error);
     } finally {

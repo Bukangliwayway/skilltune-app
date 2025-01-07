@@ -14,11 +14,12 @@ import { FileUploader } from "./file-uploader";
 type UploadType = "Videos" | "PDF";
 
 interface UploadDialogProps {
+  id: string;
   type: UploadType;
   onFileUploaded: (key: string, name: string) => void;
 }
 
-export function UploadDialog({ type, onFileUploaded }: UploadDialogProps) {
+export function UploadDialog({ id, type, onFileUploaded }: UploadDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -33,9 +34,17 @@ export function UploadDialog({ type, onFileUploaded }: UploadDialogProps) {
           </DialogDescription>
         </DialogHeader>
         {type === "Videos" ? (
-          <FileUploader type="video" onUploadComplete={onFileUploaded} />
+          <FileUploader
+            type="video"
+            onUploadComplete={onFileUploaded}
+            lesson_id={id}
+          />
         ) : (
-          <FileUploader type="pdf" onUploadComplete={onFileUploaded} />
+          <FileUploader
+            type="pdf"
+            onUploadComplete={onFileUploaded}
+            lesson_id={id}
+          />
         )}
       </DialogContent>
     </Dialog>

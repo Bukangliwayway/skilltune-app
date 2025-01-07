@@ -7,7 +7,7 @@ import AwsS3 from "@uppy/aws-s3";
 import "@uppy/core/dist/style.min.css";
 import "@uppy/dashboard/dist/style.min.css";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import {
   abortMultipartUpload,
@@ -15,6 +15,8 @@ import {
   createMultipartUpload,
   getS3UploadParams,
   prepareUploadPart,
+  updateLessonPdfUrl,
+  updateLessonVideoUrl,
 } from "@/actions/lessons";
 
 type FileType = "pdf" | "video";
@@ -22,6 +24,7 @@ type FileType = "pdf" | "video";
 interface FileUploaderProps {
   type: FileType;
   onUploadComplete: (key: string, name: string) => void;
+  lesson_id: string;
 }
 
 function createUppy(type: FileType) {
@@ -103,67 +106,88 @@ function createUppy(type: FileType) {
     },
   });
 }
-
-export function FileUploader({ type, onUploadComplete }: FileUploaderProps) {
+export function FileUploader({
+  type,
+  onUploadComplete,
+  lesson_id,
+}: FileUploaderProps) {
   const [uppy] = useState(() => createUppy(type));
   const toastIdRef = useRef<string | number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  uppy.on("upload", () => {
-    setIsUploading(true);
-  });
+  useEffect(() => {
+    const handleUpload = () => {
+      setIsUploading(true);
+      toastIdRef.current = toast.loading(
+        `Starting ${type === "pdf" ? "PDF" : "Video"} upload...`
+      );
+    };
 
-  uppy.on("complete", async (result) => {
-    const { successful = [] } = result;
-    setIsUploading(false);
+    const handleComplete = async (result: any) => {
+      const { successful = [] } = result;
+      setIsUploading(false);
 
-    if (successful.length === 0) return;
+      if (successful.length === 0) return;
 
-    const name = successful[0].name as string;
-    const key = successful[0].meta.fileKey as string;
+      const name = successful[0].name as string;
+      const key = successful[0].meta.fileKey as string;
 
-    if (toastIdRef.current) {
-      toast.dismiss(toastIdRef.current);
-    }
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+        toastIdRef.current = null;
+      }
 
-    toast.success(
-      `${type === "pdf" ? "PDF" : "Video"} ${name} uploaded successfully!`
-    );
-    onUploadComplete(key, name);
-  });
+      toast.success(
+        `${type === "pdf" ? "PDF" : "Video"} ${name} uploaded successfully!`
+      );
 
-  uppy.on("cancel-all", () => {
-    setIsUploading(false);
-    if (toastIdRef.current) {
-      toast.dismiss(toastIdRef.current);
-      toastIdRef.current = null;
-    }
-  });
+      if (type === "pdf") {
+        await updateLessonPdfUrl(lesson_id, key, name);
+      } else {
+        await updateLessonVideoUrl(lesson_id, key, name);
+      }
+      onUploadComplete(key, name);
+    };
 
-  uppy.on("upload-error", (file, error) => {
-    setIsUploading(false);
-    if (toastIdRef.current) {
-      toast.dismiss(toastIdRef.current);
-      toastIdRef.current = null;
-    }
-    toast.error(`Upload failed: ${error.message}`);
-  });
+    const handleProgress = debounce((progress: number) => {
+      if (!isUploading) return;
 
-  uppy.on("progress", (progress) => {
-    if (!isUploading) return;
+      const progressMessage = `Uploading ${
+        type === "pdf" ? "PDF" : "Video"
+      }... ${progress}%`;
 
-    const progressMessage = `Uploading ${
-      type === "pdf" ? "PDF" : "Video"
-    }... progress: ${progress}/100%`;
+      if (toastIdRef.current) {
+        toast.loading(progressMessage, {
+          id: toastIdRef.current,
+        });
+      }
+    }, 100);
 
-    if (!toastIdRef.current) {
-      toastIdRef.current = toast.loading(progressMessage);
-    } else {
-      toast.loading(progressMessage, {
-        id: toastIdRef.current,
-      });
-    }
-  });
+    const handleError = (file: any, error: Error) => {
+      setIsUploading(false);
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+        toastIdRef.current = null;
+      }
+      toast.error(`Upload failed: ${error.message}`);
+    };
+
+    uppy.on("upload", handleUpload);
+    uppy.on("complete", handleComplete);
+    uppy.on("progress", handleProgress);
+    uppy.on("upload-error", handleError);
+
+    return () => {
+      uppy.off("upload", handleUpload);
+      uppy.off("complete", handleComplete);
+      uppy.off("progress", handleProgress);
+      uppy.off("upload-error", handleError);
+
+      if (toastIdRef.current) {
+        toast.dismiss(toastIdRef.current);
+      }
+    };
+  }, [uppy, type, lesson_id, isUploading, onUploadComplete]);
 
   return (
     <Dashboard
@@ -176,4 +200,12 @@ export function FileUploader({ type, onUploadComplete }: FileUploaderProps) {
       className="!h-[60vh] !w-full !border-none !shadow-none !p-0"
     />
   );
+}
+
+function debounce(fn: Function, delay: number) {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delay);
+  };
 }

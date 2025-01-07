@@ -21,7 +21,6 @@ export async function getUploadParams({ contentType }: GetUploadParams) {
   try {
     const key = uuidv4();
 
-
     const { url, fields } = await createPresignedPost(s3Client, {
       Bucket: process.env.AWS_BUCKET_NAME ?? "",
       Key: key,
@@ -34,7 +33,6 @@ export async function getUploadParams({ contentType }: GetUploadParams) {
       },
       Expires: 3600,
     });
-
 
     return { url, fields };
   } catch (error) {
@@ -62,7 +60,7 @@ export async function getDownloadUrl(key: string) {
       Key: key,
     });
 
-    const url = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
+    const url = await getSignedUrl(s3Client, getCommand, { expiresIn: 604800 });
 
     return { url, size };
   } catch (error) {
@@ -90,7 +88,7 @@ export async function checkS3ObjectExists(key: string): Promise<boolean> {
   try {
     await s3Client.send(
       new HeadObjectCommand({
-        Bucket: process.env.AWS_THUMBNAIL_BUCKET_NAME ?? "",
+        Bucket: process.env.AWS_BUCKET_NAME ?? "",
         Key: key,
       })
     );
@@ -108,6 +106,8 @@ export async function deleteFile(key: string) {
     });
 
     await s3Client.send(command);
+
+    console.log("nagrun naman baii");
 
     return { success: true };
   } catch (error) {

@@ -86,67 +86,41 @@ export type Database = {
           },
         ]
       }
-      lesson_assets: {
-        Row: {
-          created_at: string
-          id: number
-          key: string | null
-          lesson_id: number | null
-          name: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-          key?: string | null
-          lesson_id?: number | null
-          name?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: number
-          key?: string | null
-          lesson_id?: number | null
-          name?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_assets_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       lessons: {
         Row: {
           created_at: string
           description: string | null
           id: number
+          pdf_filename: string | null
           pdf_url: string | null
           sequence: number | null
           title: string | null
           updated_at: string | null
+          video_filename: string | null
           video_url: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: number
+          pdf_filename?: string | null
           pdf_url?: string | null
           sequence?: number | null
           title?: string | null
           updated_at?: string | null
+          video_filename?: string | null
           video_url?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: number
+          pdf_filename?: string | null
           pdf_url?: string | null
           sequence?: number | null
           title?: string | null
           updated_at?: string | null
+          video_filename?: string | null
           video_url?: string | null
         }
         Relationships: []

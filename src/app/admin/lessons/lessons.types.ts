@@ -14,8 +14,6 @@ export type UpdateLessonSchema = {
   title: string;
   description: string;
   sequence: number;
-  pdf_url: string;
-  video_url: string;
   id?: string;
 };
 
@@ -52,6 +50,7 @@ export type LessonFormProps = {
 };
 
 export type FileSectionProps = {
+  id: string;
   label: string;
   type: "PDF" | "Videos";
   file: FileItem | null;

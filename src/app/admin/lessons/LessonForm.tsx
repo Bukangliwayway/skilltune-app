@@ -22,6 +22,7 @@ import { UploadDialog } from "./uploader/upload-dialog";
 import { FileSectionProps, LessonFormProps } from "./lessons.types";
 
 const FileSection = ({
+  id,
   label,
   type,
   file,
@@ -42,7 +43,7 @@ const FileSection = ({
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <FormLabel>{label}</FormLabel>
-        <UploadDialog type={type} onFileUploaded={onUpload} />
+        <UploadDialog id={id} type={type} onFileUploaded={onUpload} />
       </div>
 
       {file && (
@@ -114,7 +115,7 @@ export function LessonForm({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handleDelete = async () => {
-    await onDelete(1); // You'll need to pass the actual ID here
+    await onDelete(Number(form.getValues("id")));
     setIsDeleteModalOpen(false);
   };
 
@@ -184,6 +185,7 @@ export function LessonForm({
         {/* Right Section */}
         <div className="space-y-6">
           <FileSection
+            id={form.getValues("id")}
             label="PDF Lesson"
             type="PDF"
             file={pdfFile}
@@ -193,6 +195,7 @@ export function LessonForm({
           />
 
           <FileSection
+            id={form.getValues("id")}
             label="Video Lesson"
             type="Videos"
             file={videoFile}

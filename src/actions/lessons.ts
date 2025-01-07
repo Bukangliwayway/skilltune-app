@@ -14,7 +14,7 @@ import {
 } from "@/app/admin/lessons/lessons.types";
 import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-import { getUploadParams } from "./s3";
+import { checkS3ObjectExists, deleteFile, getUploadParams } from "./s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
 import { redirect } from "next/navigation";
@@ -49,8 +49,56 @@ export const createLesson = async ({
   return data;
 };
 
+export const createNewLesson = async () => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("lessons")
+    .insert({
+      title: "New Lesson",
+      description:
+        "Lorem ipsum dolor sit amet consectetur adipisicing elit. Praesentium, consectetur!",
+      sequence: 1,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Error creating lesson: ${error.message}`);
+
+  if (data) redirect(`/admin/lessons/${data.id}`);
+  return data;
+};
+
+export const deleteAsset = async (key: string) => {
+  const checkS3 = await checkS3ObjectExists(key);
+  console.log("tanginmao", checkS3);
+  
+  if (checkS3) {
+    await deleteFile(key);
+  }
+};
+
 export const deleteLesson = async (id: Number) => {
   const supabase = await createClient();
+  const { data } = await supabase
+    .from("lessons")
+    .select()
+    .eq("id", id)
+    .single();
+
+  if (!data) {
+    console.log(id);
+    throw new Error("Lesson not found");
+  }
+
+  if (data?.pdf_url) {
+    await deleteAsset(data?.pdf_url);
+  }
+
+  if (data?.video_url) {
+    await deleteAsset(data?.video_url);
+  }
+
   const { error } = await supabase.from("lessons").delete().match({ id });
 
   if (error) {
@@ -58,6 +106,7 @@ export const deleteLesson = async (id: Number) => {
   }
 
   revalidatePath("/admin/lessons");
+  redirect("/admin/lessons");
 };
 
 export const fileUploadHandler = async (
@@ -142,8 +191,6 @@ export const updateLesson = async ({
   title,
   description,
   sequence,
-  pdf_url,
-  video_url,
   id,
 }: UpdateLessonSchema) => {
   const supabase = await createClient();
@@ -153,16 +200,18 @@ export const updateLesson = async ({
       title,
       description,
       sequence,
-      pdf_url,
-      video_url,
     })
-    .match({ id });
+    .match({ id })
+    .select("*")
+    .single();
+
+  console.log(data);
 
   if (error) {
     throw new Error(`Error updating product: ${error.message}`);
   }
 
-  revalidatePath("/admin/lessons");
+  revalidatePath(`/admin/lessons/${id}`);
 
   return data;
 };
@@ -223,6 +272,79 @@ export async function createMultipartUpload(
     console.error("Error creating multipart upload:", error);
     throw new Error("Failed to create multipart upload");
   }
+}
+
+export async function updateLessonPdfUrl(
+  id: string,
+  pdfUrl: string,
+  name: string
+) {
+  const supabase = await createClient();
+
+  const { data: existingLesson } = await supabase
+    .from("lessons")
+    .select("pdf_url")
+    .match({ id })
+    .single();
+
+  const oldVideoKey = existingLesson?.pdf_url;
+
+  // Deletes the S3 object if the video_url is updated
+  if (oldVideoKey) {
+    console.log("Deleting old pdf", oldVideoKey);
+    await deleteAsset(oldVideoKey);
+  }
+
+  const { data, error } = await supabase
+    .from("lessons")
+    .update({ pdf_url: pdfUrl, pdf_filename: name })
+    .match({ id })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating pdf_url: ${error.message}`);
+  }
+
+  revalidatePath(`/admin/lessons/${id}`);
+
+  return data;
+}
+
+export async function updateLessonVideoUrl(
+  id: string,
+  videoUrl: string,
+  name: string
+) {
+  const supabase = await createClient();
+
+  const { data: existingLesson } = await supabase
+    .from("lessons")
+    .select("video_url")
+    .match({ id })
+    .single();
+
+  const oldVideoKey = existingLesson?.video_url;
+
+  // Deletes the S3 object if the video_url is updated
+  if (oldVideoKey) {
+    await deleteAsset(oldVideoKey);
+  }
+
+  const { data, error } = await supabase
+    .from("lessons")
+    .update({ video_url: videoUrl, video_filename: name })
+    .match({ id })
+    .select("*")
+    .single();
+
+  if (error) {
+    throw new Error(`Error updating video_url: ${error.message}`);
+  }
+
+  revalidatePath(`/admin/lessons/${id}`);
+
+  return data;
 }
 
 export async function prepareUploadPart(

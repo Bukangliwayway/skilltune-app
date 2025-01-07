@@ -1,13 +1,13 @@
 import { getLessonById } from "@/actions/lessons";
 import UpdateLessonPageComponent from "./page-component";
 
-export default async function LessonPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const lessonData = await getLessonById(params.id);
-  console.log(lessonData);
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function LessonPage({ params }: PageProps) {
+  const { id } = await params;
+  const lessonData = await getLessonById(id);
 
   return <UpdateLessonPageComponent initialData={lessonData} />;
 }
