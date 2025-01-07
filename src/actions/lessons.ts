@@ -71,7 +71,6 @@ export const createNewLesson = async () => {
 
 export const deleteAsset = async (key: string) => {
   const checkS3 = await checkS3ObjectExists(key);
-  console.log("tanginmao", checkS3);
   
   if (checkS3) {
     await deleteFile(key);

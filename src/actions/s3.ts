@@ -107,8 +107,6 @@ export async function deleteFile(key: string) {
 
     await s3Client.send(command);
 
-    console.log("nagrun naman baii");
-
     return { success: true };
   } catch (error) {
     return { error: "Failed to delete file from S3 Bucket" };
