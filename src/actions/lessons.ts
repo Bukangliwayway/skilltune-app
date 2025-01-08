@@ -272,6 +272,7 @@ export const updateLesson = async ({
   }
 
   revalidatePath(`/admin/lessons/${id}`);
+  revalidatePath(`/admin/lessons/`);
 
   return data;
 };

@@ -47,7 +47,7 @@ const FileSection = ({
         <UploadDialog id={id} type={type} onFileUploaded={onUpload} />
       </div>
 
-      {file ? (
+      {file && file?.download_url != "" ? (
         <div className="relative">
           <div
             className="border rounded-md mt-4 p-4 cursor-pointer group"

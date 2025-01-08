@@ -96,14 +96,13 @@ export default function UpdateLessonPageComponent({
   const onSubmit = async (data: LessonFormData) => {
     try {
       setIsLoading(true);
-      const res = await updateLesson({
+      await updateLesson({
         title: data.title,
         description: data.description,
         sequence: Number(data.sequence),
         id: data.id,
       });
-
-      router.push(`/admin/lessons/${res.id}`); // Replace refresh with push
+      router.push(`/admin/lessons/`);
       toast.success("Lesson updated successfully");
     } catch (error) {
       console.error("Error submitting form:", error);
