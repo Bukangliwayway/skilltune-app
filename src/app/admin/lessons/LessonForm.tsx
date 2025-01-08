@@ -40,8 +40,8 @@ const FileSection = ({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
+    <div>
+      <div className="flex justify-between items-center gap-4">
         <FormLabel>{label}</FormLabel>
         <UploadDialog id={id} type={type} onFileUploaded={onUpload} />
       </div>
@@ -49,18 +49,14 @@ const FileSection = ({
       {file && (
         <div className="relative">
           <div
-            className="border rounded-md p-4 cursor-pointer group"
+            className="border rounded-md mt-4 p-4 cursor-pointer group"
             onClick={() => onDownload(`/api/files/${file.key}`, file.filename)}
           >
-            {/* Placeholder box for file preview */}
-            <div className="w-full aspect-video bg-muted rounded-sm flex items-center justify-center">
-              {type === "Videos" ? "Video Thumbnail" : "PDF Preview"}
-            </div>
-
             {/* Delete button */}
             <button
-              className="absolute top-2 right-2 p-1 rounded-full bg-white shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-2 right-2 p-1 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setIsDeleteModalOpen(true);
               }}
@@ -69,7 +65,7 @@ const FileSection = ({
             </button>
 
             {/* Filename */}
-            <p className="mt-2 text-sm text-muted-foreground truncate">
+            <p className="mt-2 text-sm truncate">
               {file.filename}
             </p>
           </div>
@@ -182,8 +178,7 @@ export function LessonForm({
           )}
         />
 
-        {/* Right Section */}
-        <div className="space-y-6">
+        <div className="grid grid-cols-2 gap-4">
           <FileSection
             id={form.getValues("id")}
             label="PDF Lesson"

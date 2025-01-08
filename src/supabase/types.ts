@@ -92,36 +92,36 @@ export type Database = {
           description: string | null
           id: number
           pdf_filename: string | null
-          pdf_url: string | null
+          pdf_key: string | null
           sequence: number | null
           title: string | null
           updated_at: string | null
           video_filename: string | null
-          video_url: string | null
+          video_key: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
           id?: number
           pdf_filename?: string | null
-          pdf_url?: string | null
+          pdf_key?: string | null
           sequence?: number | null
           title?: string | null
           updated_at?: string | null
           video_filename?: string | null
-          video_url?: string | null
+          video_key?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
           id?: number
           pdf_filename?: string | null
-          pdf_url?: string | null
+          pdf_key?: string | null
           sequence?: number | null
           title?: string | null
           updated_at?: string | null
           video_filename?: string | null
-          video_url?: string | null
+          video_key?: string | null
         }
         Relationships: []
       }

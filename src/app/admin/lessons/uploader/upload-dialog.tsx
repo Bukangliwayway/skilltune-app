@@ -23,7 +23,7 @@ export function UploadDialog({ id, type, onFileUploaded }: UploadDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Upload {type}</Button>
+        <Button className="border" variant={'ghost'}>Upload {type}</Button>
       </DialogTrigger>
       <DialogContent className="max-w-[80%]">
         <DialogHeader>

@@ -60,7 +60,7 @@ export async function getDownloadUrl(key: string) {
       Key: key,
     });
 
-    const url = await getSignedUrl(s3Client, getCommand, { expiresIn: 604800 });
+    const url = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
 
     return { url, size };
   } catch (error) {

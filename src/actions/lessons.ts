@@ -90,12 +90,12 @@ export const deleteLesson = async (id: Number) => {
     throw new Error("Lesson not found");
   }
 
-  if (data?.pdf_url) {
-    await deleteAsset(data?.pdf_url);
+  if (data?.pdf_key) {
+    await deleteAsset(data?.pdf_key);
   }
 
-  if (data?.video_url) {
-    await deleteAsset(data?.video_url);
+  if (data?.video_key) {
+    await deleteAsset(data?.video_key);
   }
 
   const { error } = await supabase.from("lessons").delete().match({ id });
@@ -181,8 +181,8 @@ export const getLessonById = async (id: string) => {
     title: data.title || "",
     description: data.description || "",
     sequence: data.sequence || 1,
-    pdf_url: data.pdf_url || "",
-    video_url: data.video_url || "",
+    pdf_key: data.pdf_key || "",
+    video_key: data.video_key || "",
   };
 };
 
@@ -273,22 +273,22 @@ export async function createMultipartUpload(
   }
 }
 
-export async function updateLessonPdfUrl(
+export async function updateLessonPdfKey(
   id: string,
-  pdfUrl: string,
+  pdfKey: string,
   name: string
 ) {
   const supabase = await createClient();
 
   const { data: existingLesson } = await supabase
     .from("lessons")
-    .select("pdf_url")
+    .select("pdf_key")
     .match({ id })
     .single();
 
-  const oldVideoKey = existingLesson?.pdf_url;
+  const oldVideoKey = existingLesson?.pdf_key;
 
-  // Deletes the S3 object if the video_url is updated
+  // Deletes the S3 object if the video_key is updated
   if (oldVideoKey) {
     console.log("Deleting old pdf", oldVideoKey);
     await deleteAsset(oldVideoKey);
@@ -296,13 +296,13 @@ export async function updateLessonPdfUrl(
 
   const { data, error } = await supabase
     .from("lessons")
-    .update({ pdf_url: pdfUrl, pdf_filename: name })
+    .update({ pdf_key: pdfKey, pdf_filename: name })
     .match({ id })
     .select("*")
     .single();
 
   if (error) {
-    throw new Error(`Error updating pdf_url: ${error.message}`);
+    throw new Error(`Error updating pdf_key: ${error.message}`);
   }
 
   revalidatePath(`/admin/lessons/${id}`);
@@ -310,35 +310,35 @@ export async function updateLessonPdfUrl(
   return data;
 }
 
-export async function updateLessonVideoUrl(
+export async function updateLessonVideoKey(
   id: string,
-  videoUrl: string,
+  videoKey: string,
   name: string
 ) {
   const supabase = await createClient();
 
   const { data: existingLesson } = await supabase
     .from("lessons")
-    .select("video_url")
+    .select("video_key")
     .match({ id })
     .single();
 
-  const oldVideoKey = existingLesson?.video_url;
+  const oldVideoKey = existingLesson?.video_key;
 
-  // Deletes the S3 object if the video_url is updated
+  // Deletes the S3 object if the video_key is updated
   if (oldVideoKey) {
     await deleteAsset(oldVideoKey);
   }
 
   const { data, error } = await supabase
     .from("lessons")
-    .update({ video_url: videoUrl, video_filename: name })
+    .update({ video_key: videoKey, video_filename: name })
     .match({ id })
     .select("*")
     .single();
 
   if (error) {
-    throw new Error(`Error updating video_url: ${error.message}`);
+    throw new Error(`Error updating video_key: ${error.message}`);
   }
 
   revalidatePath(`/admin/lessons/${id}`);

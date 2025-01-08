@@ -6,8 +6,8 @@ export type Lesson = {
   title: string;
   description: string;
   sequence: number;
-  pdf_url: string;
-  video_url: string;
+  pdf_key: string;
+  video_key: string;
 };
 
 export type UpdateLessonSchema = {

@@ -5,13 +5,6 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { LessonForm } from "../LessonForm";
 import { LoadingOverlay } from "@/components/loadingOverlay";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { deleteAsset, deleteLesson, updateLesson } from "@/actions/lessons";
 import { toast } from "sonner";
 import {
@@ -19,6 +12,7 @@ import {
   LessonFormData,
   LessonPageComponentProps,
 } from "../lessons.types";
+import { SquarePen } from "lucide-react";
 
 export default function UpdateLessonPageComponent({
   initialData,
@@ -73,8 +67,8 @@ export default function UpdateLessonPageComponent({
 
   // Form Submit Handler
   const onSubmit = async (data: LessonFormData) => {
-    let pdfUrl: string = "",
-      videoUrl: string = "";
+    let pdfKey: string = "",
+      videoKey: string = "";
 
     try {
       setIsLoading(true);
@@ -132,29 +126,27 @@ export default function UpdateLessonPageComponent({
   return (
     <>
       <LoadingOverlay isLoading={isLoading} />
-      <Card className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl shadow-lg rounded-xl border border-gray-100 bg-white/50 backdrop-blur-sm hover:shadow-xl transition-all duration-300 my-8 dark:bg-gray-800/50 dark:border-gray-700 dark:hover:border-gray-600">
-        <CardHeader>
-          <CardTitle>Lesson Limbic Ikinamada Bouquet</CardTitle>
-          <CardDescription>Card Description</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mt-6">
-            <LessonForm
-              form={form}
-              onSubmit={onSubmit}
-              onDelete={handleLessonDelete}
-              onVideoUpload={handleVideoUploaded}
-              onPDFUpload={handlePDFUploaded}
-              onVideoDelete={handleVideoDelete}
-              onPDFDelete={handlePDFDelete}
-              onFileDownload={handleFileDownload}
-              pdfFile={pdfFile}
-              videoFile={videoFile}
-              isSubmitting={isLoading}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="container mx-auto px-12 ">
+        <div className="flex items-center gap-4 py-6">
+          <span className=" text-base font-semibold ">
+            {form.getValues("title")}
+          </span>
+          <SquarePen size={24} />
+        </div>
+        <LessonForm
+          form={form}
+          onSubmit={onSubmit}
+          onDelete={handleLessonDelete}
+          onVideoUpload={handleVideoUploaded}
+          onPDFUpload={handlePDFUploaded}
+          onVideoDelete={handleVideoDelete}
+          onPDFDelete={handlePDFDelete}
+          onFileDownload={handleFileDownload}
+          pdfFile={pdfFile}
+          videoFile={videoFile}
+          isSubmitting={isLoading}
+        />
+      </div>
     </>
   );
 }

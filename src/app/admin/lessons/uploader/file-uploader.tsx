@@ -15,8 +15,8 @@ import {
   createMultipartUpload,
   getS3UploadParams,
   prepareUploadPart,
-  updateLessonPdfUrl,
-  updateLessonVideoUrl,
+  updateLessonPdfKey,
+  updateLessonVideoKey,
 } from "@/actions/lessons";
 
 type FileType = "pdf" | "video";
@@ -142,9 +142,9 @@ export function FileUploader({
       );
 
       if (type === "pdf") {
-        await updateLessonPdfUrl(lesson_id, key, name);
+        await updateLessonPdfKey(lesson_id, key, name);
       } else {
-        await updateLessonVideoUrl(lesson_id, key, name);
+        await updateLessonVideoKey(lesson_id, key, name);
       }
       onUploadComplete(key, name);
     };
