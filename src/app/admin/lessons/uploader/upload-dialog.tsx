@@ -11,29 +11,32 @@ import {
 } from "@/components/ui/dialog";
 import { FileUploader } from "./file-uploader";
 
-type UploadType = "Videos" | "PDF";
+type UploadType = "video" | "PDF";
 
 interface UploadDialogProps {
   id: string;
   type: UploadType;
-  onFileUploaded: (key: string, name: string) => void;
+  onFileUploaded: (key: string, name: string, download_url: string) => void;
 }
 
 export function UploadDialog({ id, type, onFileUploaded }: UploadDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="border" variant={'ghost'}>Upload {type}</Button>
+        <Button className="border" variant={"ghost"}>
+          Upload {type}
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-[80%]">
         <DialogHeader>
           <DialogTitle>Upload {type}</DialogTitle>
           <DialogDescription>
-            Drag and drop your {type} here or click to browse. Maximum file size
-            is 500 MB only
+            Drag and drop your {type} here or click to browse. Maximum file
+            size. is 500 MB only. Note that uploading new {type} will replace
+            the existing {type}.
           </DialogDescription>
         </DialogHeader>
-        {type === "Videos" ? (
+        {type === "video" ? (
           <FileUploader
             type="video"
             onUploadComplete={onFileUploaded}

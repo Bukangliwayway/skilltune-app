@@ -13,6 +13,7 @@ import {
   abortMultipartUpload,
   completeMultipartUpload,
   createMultipartUpload,
+  getS3DownloadUrl,
   getS3UploadParams,
   prepareUploadPart,
   updateLessonPdfKey,
@@ -23,7 +24,7 @@ type FileType = "pdf" | "video";
 
 interface FileUploaderProps {
   type: FileType;
-  onUploadComplete: (key: string, name: string) => void;
+  onUploadComplete: (key: string, name: string, download_url: string) => void;
   lesson_id: string;
 }
 
@@ -141,12 +142,15 @@ export function FileUploader({
         `${type === "pdf" ? "PDF" : "Video"} ${name} uploaded successfully!`
       );
 
+      let download_url: string;
       if (type === "pdf") {
         await updateLessonPdfKey(lesson_id, key, name);
+        download_url = (await getS3DownloadUrl(key)) ?? "";
       } else {
         await updateLessonVideoKey(lesson_id, key, name);
+        download_url = (await getS3DownloadUrl(key)) ?? "";
       }
-      onUploadComplete(key, name);
+      onUploadComplete(key, name, download_url);
     };
 
     const handleProgress = debounce((progress: number) => {

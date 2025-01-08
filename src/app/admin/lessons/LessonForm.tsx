@@ -29,6 +29,7 @@ const FileSection = ({
   onUpload,
   onDelete,
   onDownload,
+  isSubmitting,
 }: FileSectionProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -46,11 +47,11 @@ const FileSection = ({
         <UploadDialog id={id} type={type} onFileUploaded={onUpload} />
       </div>
 
-      {file && (
+      {file ? (
         <div className="relative">
           <div
             className="border rounded-md mt-4 p-4 cursor-pointer group"
-            onClick={() => onDownload(`/api/files/${file.key}`, file.filename)}
+            onClick={() => onDownload(file.download_url, file.filename)}
           >
             {/* Delete button */}
             <button
@@ -65,16 +66,14 @@ const FileSection = ({
             </button>
 
             {/* Filename */}
-            <p className="mt-2 text-sm truncate">
-              {file.filename}
-            </p>
+            <p className="mt-2 text-sm truncate">{file.filename}</p>
           </div>
 
           <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
-                  Delete {type === "Videos" ? "Video" : "PDF"}
+                  Delete {type === "video" ? "Video" : "PDF"}
                 </DialogTitle>
               </DialogHeader>
               <p>Are you sure you want to delete {file.filename}?</p>
@@ -82,6 +81,7 @@ const FileSection = ({
                 <Button
                   variant="destructive"
                   onClick={handleDelete}
+                  disabled={isSubmitting}
                   type="button"
                 >
                   Delete
@@ -89,6 +89,10 @@ const FileSection = ({
               </DialogFooter>
             </DialogContent>
           </Dialog>
+        </div>
+      ) : (
+        <div className="border rounded-md mt-4 p-4 h-[64px] flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">No Data Yet</p>
         </div>
       )}
     </div>
@@ -187,16 +191,18 @@ export function LessonForm({
             onUpload={onPDFUpload}
             onDelete={onPDFDelete}
             onDownload={onFileDownload}
+            isSubmitting={isSubmitting}
           />
 
           <FileSection
             id={form.getValues("id")}
             label="Video Lesson"
-            type="Videos"
+            type="video"
             file={videoFile}
             onUpload={onVideoUpload}
             onDelete={onVideoDelete}
             onDownload={onFileDownload}
+            isSubmitting={isSubmitting}
           />
         </div>
 

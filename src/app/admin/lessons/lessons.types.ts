@@ -22,6 +22,7 @@ export type LessonsResponse = Lesson[];
 export type FileItem = {
   key: string;
   filename: string;
+  download_url: string;
 };
 
 export type LessonFormData = {
@@ -29,6 +30,12 @@ export type LessonFormData = {
   sequence: number;
   description: string;
   id: string;
+  pdf_key: string;
+  video_key: string;
+  pdf_filename: string;
+  video_filename: string;
+  pdf_download_url: string;
+  video_download_url: string;
 };
 
 export type LessonPageComponentProps = {
@@ -39,8 +46,8 @@ export type LessonFormProps = {
   form: UseFormReturn<LessonFormData>;
   onSubmit: (data: LessonFormData) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
-  onVideoUpload: (key: string, name: string) => void;
-  onPDFUpload: (key: string, name: string) => void;
+  onVideoUpload: (key: string, name: string, download_url: string) => void;
+  onPDFUpload: (key: string, name: string, download_url: string) => void;
   onVideoDelete: (key: string) => Promise<void>;
   onPDFDelete: (key: string) => Promise<void>;
   onFileDownload: (url: string, filename: string) => void;
@@ -52,9 +59,10 @@ export type LessonFormProps = {
 export type FileSectionProps = {
   id: string;
   label: string;
-  type: "PDF" | "Videos";
+  type: "PDF" | "video";
   file: FileItem | null;
-  onUpload: (key: string, name: string) => void;
+  onUpload: (key: string, name: string, download_url: string) => void;
   onDelete: (key: string) => Promise<void>;
   onDownload: (url: string, filename: string) => void;
+  isSubmitting: boolean;
 };

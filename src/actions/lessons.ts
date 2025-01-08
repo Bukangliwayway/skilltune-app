@@ -14,7 +14,12 @@ import {
 } from "@/app/admin/lessons/lessons.types";
 import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-import { checkS3ObjectExists, deleteFile, getUploadParams } from "./s3";
+import {
+  checkS3ObjectExists,
+  deleteFile,
+  getDownloadUrl,
+  getUploadParams,
+} from "./s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
 import { redirect } from "next/navigation";
@@ -70,11 +75,51 @@ export const createNewLesson = async () => {
 };
 
 export const deleteAsset = async (key: string) => {
+  const supabase = await createClient();
+
+  // Check S3 first
   const checkS3 = await checkS3ObjectExists(key);
-  
-  if (checkS3) {
-    await deleteFile(key);
+
+  if (!checkS3) return;
+
+  // Find lesson with matching key
+  const { data: lessonWithPdfKey } = await supabase
+    .from("lessons")
+    .select()
+    .eq("pdf_key", key)
+    .single();
+
+  const { data: lessonWithVideoKey } = await supabase
+    .from("lessons")
+    .select()
+    .eq("video_key", key)
+    .single();
+
+  console.log("pdf: " + lessonWithPdfKey + "\nvideo" + lessonWithVideoKey);
+
+  // Update lesson based on which key matched
+  if (lessonWithPdfKey) {
+    await supabase
+      .from("lessons")
+      .update({
+        pdf_key: "",
+        pdf_filename: "",
+      })
+      .eq("id", lessonWithPdfKey.id);
   }
+
+  if (lessonWithVideoKey) {
+    await supabase
+      .from("lessons")
+      .update({
+        video_key: "",
+        video_filename: "",
+      })
+      .eq("id", lessonWithVideoKey.id);
+  }
+
+  // Delete from S3 after DB update
+  await deleteFile(key);
 };
 
 export const deleteLesson = async (id: Number) => {
@@ -161,6 +206,7 @@ export const fileUploadHandler = async (
 
 export const getLessonById = async (id: string) => {
   const supabase = await createClient();
+  let pdf_download, video_download;
 
   const { data, error } = await supabase
     .from("lessons")
@@ -176,6 +222,18 @@ export const getLessonById = async (id: string) => {
     throw new Error(`Error fetching lesson: ${postgrestError.message}`);
   }
 
+  if (data?.pdf_key) {
+    const checkPdf = await checkS3ObjectExists(data.pdf_key);
+
+    pdf_download = checkPdf ? await getDownloadUrl(data.pdf_key) : null;
+  }
+
+  if (data?.video_key) {
+    const checkVideo = await checkS3ObjectExists(data.video_key);
+
+    video_download = checkVideo ? await getDownloadUrl(data.video_key) : null;
+  }
+
   return {
     id: String(data.id),
     title: data.title || "",
@@ -183,6 +241,10 @@ export const getLessonById = async (id: string) => {
     sequence: data.sequence || 1,
     pdf_key: data.pdf_key || "",
     video_key: data.video_key || "",
+    pdf_filename: data.pdf_filename || "",
+    video_filename: data.video_filename || "",
+    pdf_download_url: pdf_download?.url || "",
+    video_download_url: video_download?.url || "",
   };
 };
 
@@ -204,8 +266,6 @@ export const updateLesson = async ({
     .select("*")
     .single();
 
-  console.log(data);
-
   if (error) {
     throw new Error(`Error updating product: ${error.message}`);
   }
@@ -218,6 +278,12 @@ export const updateLesson = async ({
 const uploadConfig = {
   maxSizeBytes: 500 * 1024 * 1024, // 500MB
 };
+
+export async function getS3DownloadUrl(key: string) {
+  const response = await getDownloadUrl(key);
+
+  return response.url;
+}
 
 export async function getS3UploadParams(
   filename: string,

@@ -19,8 +19,25 @@ export default function UpdateLessonPageComponent({
 }: LessonPageComponentProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [pdfFile, setPdfFile] = useState<FileItem | null>(null);
-  const [videoFile, setVideoFile] = useState<FileItem | null>(null);
+  const [pdfFile, setPdfFile] = useState<FileItem | null>(() =>
+    initialData?.pdf_key
+      ? {
+          key: initialData.pdf_key,
+          filename: initialData.pdf_filename,
+          download_url: initialData.pdf_download_url,
+        }
+      : null
+  );
+
+  const [videoFile, setVideoFile] = useState<FileItem | null>(() =>
+    initialData?.video_key
+      ? {
+          key: initialData.video_key,
+          filename: initialData.video_filename,
+          download_url: initialData.video_download_url,
+        }
+      : null
+  );
 
   const form = useForm<LessonFormData>({
     defaultValues: initialData || {
@@ -32,12 +49,20 @@ export default function UpdateLessonPageComponent({
   });
 
   // File Upload Handlers
-  const handleVideoUploaded = (key: string, name: string) => {
-    setVideoFile({ key, filename: name });
+  const handleVideoUploaded = (
+    key: string,
+    name: string,
+    download_url: string
+  ) => {
+    setVideoFile({ key, filename: name, download_url: download_url });
   };
 
-  const handlePDFUploaded = (key: string, name: string) => {
-    setPdfFile({ key, filename: name });
+  const handlePDFUploaded = (
+    key: string,
+    name: string,
+    download_url: string
+  ) => {
+    setPdfFile({ key, filename: name, download_url: download_url });
   };
 
   // File Delete Handlers
@@ -45,6 +70,7 @@ export default function UpdateLessonPageComponent({
     try {
       setIsLoading(true);
       await deleteAsset(key);
+      toast.success("Video deleted successfully");
       setVideoFile(null);
     } catch (error) {
       console.error("Error deleting video:", error);
@@ -58,6 +84,7 @@ export default function UpdateLessonPageComponent({
       setIsLoading(true);
       await deleteAsset(key);
       setPdfFile(null);
+      toast.success("PDF deleted successfully");
     } catch (error) {
       console.error("Error deleting PDF:", error);
     } finally {
@@ -67,9 +94,6 @@ export default function UpdateLessonPageComponent({
 
   // Form Submit Handler
   const onSubmit = async (data: LessonFormData) => {
-    let pdfKey: string = "",
-      videoKey: string = "";
-
     try {
       setIsLoading(true);
       const res = await updateLesson({
