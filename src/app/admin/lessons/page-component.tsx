@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { MousePointer, PlusCircle } from "lucide-react";
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Lesson, LessonsResponse } from "./lessons.types";
 import { redirect, useRouter } from "next/navigation";
 import { createNewLesson } from "@/actions/lessons";
@@ -11,8 +11,7 @@ type Props = {
 };
 
 const LessonsPageComponent: FC<Props> = ({ lessons }) => {
-  const router = useRouter();
-
+  const [isCreating, setisCreating] = useState(false);
   return (
     <>
       <div className="flex py-4 px-6 justify-between items-center">
@@ -22,10 +21,13 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
         </div>
         <Button
           size="sm"
+          disabled={isCreating}
           variant="outline"
           onClick={async (e) => {
             e.preventDefault();
+            setisCreating(true);
             await createNewLesson();
+            setisCreating(false);
           }}
         >
           <PlusCircle className="h-3.5 w-3.5" />

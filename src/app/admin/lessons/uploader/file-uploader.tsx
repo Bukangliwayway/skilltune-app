@@ -52,11 +52,27 @@ function createUppy(type: FileType) {
     async createMultipartUpload(file) {
       const response = await createMultipartUpload(file.name ?? "", file.type);
 
+      console.log("Multipart upload response:", response);
+
       if (!response.uploadId) {
         throw new Error("Failed to get uploadId for multipart upload");
       }
 
-      return { uploadId: response.uploadId, key: response.key };
+      if (!response.key) {
+        throw new Error("No key returned from createMultipartUpload");
+      }
+
+      uppy.setFileMeta(file.id, {
+        fileKey: response.key,
+        uploadId: response.uploadId,
+      });
+
+      console.log("Set file meta:", file.id, response.key);
+
+      return {
+        uploadId: response.uploadId,
+        key: response.key,
+      };
     },
     async signPart(file, partData) {
       const { uploadId, key, partNumber } = partData;
@@ -132,6 +148,8 @@ export function FileUploader({
 
       const name = successful[0].name as string;
       const key = successful[0].meta.fileKey as string;
+
+      console.log("Upload complete", key, name);
 
       if (toastIdRef.current) {
         toast.dismiss(toastIdRef.current);

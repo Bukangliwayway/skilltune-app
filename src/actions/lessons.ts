@@ -23,6 +23,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { CreateLessonSchemaServer } from "@/app/admin/lessons/lessons.schema";
 import { redirect } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
 export const getAllLessons = async (): Promise<LessonsResponse> => {
   const supabase = await createClient();
@@ -317,9 +318,9 @@ export async function createMultipartUpload(
   filename: string,
   contentType: string
 ) {
-  "use server";
+  ("use server");
 
-  const key = `uploads/${Date.now()}-${filename}`;
+  const key = uuidv4();
 
   const command = new CreateMultipartUploadCommand({
     Bucket: process.env.AWS_BUCKET_NAME,
@@ -328,17 +329,17 @@ export async function createMultipartUpload(
   });
 
   try {
-    const { UploadId } = await s3Client.send(command);
+    const multipartUpload = await s3Client.send(command);
     return {
-      uploadId: UploadId,
-      key,
+      uploadId: multipartUpload.UploadId,
+      key: key,
+      filename: filename,
     };
   } catch (error) {
-    console.error("Error creating multipart upload:", error);
-    throw new Error("Failed to create multipart upload");
+    console.error("Error in createMultipartUpload:", error);
+    throw error;
   }
 }
-
 export async function updateLessonPdfKey(
   id: string,
   pdfKey: string,
@@ -356,7 +357,6 @@ export async function updateLessonPdfKey(
 
   // Deletes the S3 object if the video_key is updated
   if (oldVideoKey) {
-    console.log("Deleting old pdf", oldVideoKey);
     await deleteAsset(oldVideoKey);
   }
 

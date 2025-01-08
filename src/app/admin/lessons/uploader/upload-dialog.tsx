@@ -27,13 +27,16 @@ export function UploadDialog({ id, type, onFileUploaded }: UploadDialogProps) {
           Upload {type}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[80%]">
+      <DialogContent className="max-w-[70%]">
         <DialogHeader>
           <DialogTitle>Upload {type}</DialogTitle>
           <DialogDescription>
             Drag and drop your {type} here or click to browse. Maximum file
-            size. is 500 MB only. Note that uploading new {type} will replace
-            the existing {type}.
+            size. is 500 MB only.
+            <br />
+            Please do not close the Dialog during upload process.
+            <br />
+            Note that uploading new {type} will replace the existing {type}.
           </DialogDescription>
         </DialogHeader>
         {type === "video" ? (
