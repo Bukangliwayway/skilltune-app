@@ -46,3 +46,33 @@ export type QuizCsvRow = {
   itemScore: number;
   sequence: number;
 };
+
+export type Choice = {
+  choice: string | null;
+  created_at: string;
+  id: number;
+  is_correct: boolean | null;
+  quiz_card_id: number | null;
+};
+
+export type QuizCard = {
+  correct_choice_id: number | null;
+  created_at: string;
+  explanation: string | null;
+  id: number;
+  item_score: number | null;
+  question: string | null;
+  quiz_deck_id: number | null;
+  sequence: number | null;
+  choices: Choice[];
+};
+
+export type QuizDisplay = {
+  id: number;
+  created_at: string;
+  title: string;
+  description: string;
+  lesson_id: number;
+  csv_version: string;
+  quiz_cards: QuizCard[];
+};

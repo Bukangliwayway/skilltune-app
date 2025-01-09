@@ -127,7 +127,7 @@ export const QuizForm = ({
         />
 
         <div className="flex gap-4">
-          {quiz?.csv_version && (
+          {quiz?.csv_version ? (
             <FormItem className="flex flex-col flex-[1]">
               <FormLabel>Download Quiz Deck</FormLabel>
               <FormControl className="flex items-center justify-center h-full">
@@ -137,9 +137,28 @@ export const QuizForm = ({
                     e.preventDefault(); // Prevent form submission
                     window.open(quiz.csv_version, "_blank");
                   }}
-                  type="button" 
+                  type="button"
                 >
                   Download CSV
+                </Button>
+              </FormControl>
+            </FormItem>
+          ) : (
+            <FormItem className="flex flex-col flex-[1]">
+              <FormLabel>Download Quiz Deck</FormLabel>
+              <FormControl className="flex items-center justify-center h-full">
+                <Button
+                  className="w-full h-10 bg-green-600 hover:bg-green-700"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open(
+                      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/skilltuneapp-bucket/skilltuneapp%20default%20assets/quiz_template.csv`,
+                      "_blank"
+                    );
+                  }}
+                  type="button"
+                >
+                  Download Template
                 </Button>
               </FormControl>
             </FormItem>

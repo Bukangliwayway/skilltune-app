@@ -213,7 +213,7 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
             <DialogTrigger asChild key={quiz.id}>
               <div
                 key={quiz.id}
-                className="p-4 border rounded-lg hover:shadow-lg cursor-pointer"
+                className="p-4 border rounded-lg hover:shadow-lg cursor-pointer relative group"
                 onClick={() => {
                   form.reset({
                     title: quiz.title,
@@ -226,6 +226,15 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
                   setCurrentQuiz(null);
                 }}
               >
+                <button
+                  className="absolute top-2 right-2 p-2  rounded-sm bg-green-600 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/admin/quizzes/${quiz.id}`);
+                  }}
+                >
+                  Preview
+                </button>
                 <h2 className="text-lg font-semibold">{quiz.title}</h2>
                 <p className="mt-2 text-sm">{quiz.description}</p>
               </div>

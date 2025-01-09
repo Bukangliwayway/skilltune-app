@@ -67,6 +67,28 @@ export const deleteQuiz = async (id: Number) => {
   revalidatePath("/admin/quizzes");
 };
 
+export const getQuizById = async (id: Number) => {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("quiz_decks")
+    .select(
+      `
+    *,
+    quiz_cards(
+      *,
+      choices(*)
+    )
+  `
+    )
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(`Error deleting Quiz: ${error.message}`);
+  }
+
+  return data;
+};
+
 const EXPECTED_HEADERS = [
   "question",
   "choice a",
@@ -149,20 +171,20 @@ const validateQuizRow = (row: string[], headers?: string[]): QuizCsvRow => {
     throw new Error("Correct answer must be A, B, C, or D");
   }
 
-  // Validate explanation
-  if (!row[6]?.trim()) {
-    throw new Error("Explanation cannot be empty");
-  }
+  // // Validate explanation
+  // if (!row[6]?.trim()) {
+  //   throw new Error("Explanation cannot be empty");
+  // }
 
   // Validate item score
   const itemScore = parseFloat(row[7]);
-  if (isNaN(itemScore) || itemScore <= 0) {
+  if (itemScore <= 0) {
     throw new Error("Item score must be a positive number");
   }
 
   // Validate sequence
   const sequence = parseInt(row[8]);
-  if (isNaN(sequence) || sequence <= 0 || !Number.isInteger(sequence)) {
+  if (sequence < 0) {
     throw new Error("Sequence must be a positive integer");
   }
 
@@ -173,9 +195,10 @@ const validateQuizRow = (row: string[], headers?: string[]): QuizCsvRow => {
     choiceC: row[3].trim(),
     choiceD: row[4].trim(),
     correctAnswer,
-    explanation: row[6].trim(),
-    itemScore,
-    sequence,
+    explanation: row[6]?.trim() || "",
+    itemScore: parseFloat(row[7]) > 0 ? parseFloat(row[7]) : 1,
+    sequence:
+      !isNaN(parseInt(row[8])) && parseInt(row[8]) > 0 ? parseInt(row[8]) : 1,
   };
 };
 
