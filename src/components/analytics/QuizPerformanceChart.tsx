@@ -24,6 +24,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { QuizPerformanceProps } from "@/app/admin/dashboard/dashboard.schema";
 
 const chartData = [
   { bardisplay: "1", tooltipdisplayquiz: "Quiz 1", attempts: 186, passed: 80 },
@@ -66,19 +67,18 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MultipleBarChart() {
+export function QuizPerformance({ data }: QuizPerformanceProps) {
   return (
     <Card className="col-span-2 h-full">
       <CardHeader>
         <CardTitle>Quiz Performance</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="h-[500px]">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               accessibilityLayer
-              data={chartData}
+              data={data ?? chartData}
               margin={{
                 top: 20,
                 right: 30,
@@ -153,4 +153,4 @@ export function MultipleBarChart() {
   );
 }
 
-export default MultipleBarChart;
+export default QuizPerformance;

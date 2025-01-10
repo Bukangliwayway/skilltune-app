@@ -24,18 +24,19 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { LessonCompletionProps } from "@/app/admin/dashboard/dashboard.schema";
 
 const chartData = [
   { lesson: "Lesson 1", users: 186 },
   { lesson: "Lesson 2", users: 305 },
   { lesson: "Lesson 3", users: 237 },
-  { lesson: "Lesson 4", users: 73 },
+  { lesson: "Lesson 4", users: 153 },
   { lesson: "Lesson 5", users: 209 },
   { lesson: "Lesson 6", users: 214 },
   { lesson: "Lesson 7", users: 186 },
   { lesson: "Lesson 8", users: 305 },
   { lesson: "Lesson 9", users: 237 },
-  { lesson: "Lesson 10", users: 73 },
+  { lesson: "Lesson 10", users: 123 },
   { lesson: "Lesson 11", users: 209 },
   { lesson: "Lesson 12", users: 214 },
 ];
@@ -54,18 +55,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function BarSample() {
+export function LessonCompletion({ data }: LessonCompletionProps) {
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle>Lesson Completion Overview</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
       </CardHeader>
       <CardContent className="h-[500px]">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             accessibilityLayer
-            data={chartData}
+            data={data ?? chartData}
             layout="vertical"
             margin={{
               right: 60,

@@ -834,7 +834,7 @@ export type Database = {
           attempt_date: string | null
           created_at: string
           id: number
-          is_passed: boolean | null
+          is_passed: boolean
           quiz_deck_id: number | null
           score: number | null
           user_id: string | null
@@ -843,7 +843,7 @@ export type Database = {
           attempt_date?: string | null
           created_at?: string
           id?: number
-          is_passed?: boolean | null
+          is_passed?: boolean
           quiz_deck_id?: number | null
           score?: number | null
           user_id?: string | null
@@ -852,7 +852,7 @@ export type Database = {
           attempt_date?: string | null
           created_at?: string
           id?: number
-          is_passed?: boolean | null
+          is_passed?: boolean
           quiz_deck_id?: number | null
           score?: number | null
           user_id?: string | null
