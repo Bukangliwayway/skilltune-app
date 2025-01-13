@@ -35,27 +35,29 @@ async function getAverageQuizScore() {
   };
 }
 
-// async function getActiveUsers() {
-//   const supabase = await createClient();
+async function getActiveUsers() {
+  try {
+    const supabase = await createClient();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-//   // Get date from 30 days ago
-//   const now = new Date();
-//   const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30)).toISOString();
+    const { data, count, error } = await supabase
+      .from("learning_progress")
+      .select("user_id", {
+        count: "exact",
+        head: false,
+      })
+      .gte("lesson_completed_at", thirtyDaysAgo.toISOString());
+    const distinctUserCount = new Set(data?.map((record) => record.user_id))
+      .size;
 
-//   const { count, error } = await supabase
-//     .from("learning_progress")
-//     .select("user_id", {
-//       count: "exact",
-//       head: true,
-//     })
-//     .gte("lesson_completed_at", thirtyDaysAgo)
-//     .eq("lesson_completed", 1);
-
-//   if (error) throw error;
-
-//   return count ?? 0;
-// }
-
+    if (error) throw error;
+    return distinctUserCount ?? 0;
+  } catch (error) {
+    console.error("Error fetching active users:", error);
+    return 0;
+  }
+}
 // async function getQuizPerformance() {
 //   const supabase = await createClient();
 
@@ -143,12 +145,12 @@ async function getAverageQuizScore() {
 export async function getDashboardData() {
   const totalUsers = await getTotalUsers();
   const averageQuizScore = await getAverageQuizScore();
-  console.log(totalUsers, averageQuizScore);
+  const totalActiveUsers = await getActiveUsers();
 
   return {
     totalUsers: totalUsers,
     averageQuizScore: averageQuizScore,
-    // totalActiveUsers: await getActiveUsers(),
+    totalActiveUsers: totalActiveUsers,
     // quizPerformance: await getQuizPerformance(),
     // lessonCompletion: await getLessonCompletion(),
   };
