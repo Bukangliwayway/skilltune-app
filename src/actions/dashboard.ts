@@ -58,47 +58,50 @@ async function getActiveUsers() {
     return 0;
   }
 }
-// async function getQuizPerformance() {
-//   const supabase = await createClient();
 
-//   const { data, error } = await supabase
-//     .from("quiz_attempts")
-//     .select(
-//       `
-//       count(*) as attempts,
-//       sum(case when is_passed = true then 1 else 0 end) as passed,
-//       quiz_decks (
-//         lessons (
-//           sequence,
-//           title
-//         )
-//       )
-//     `
-//     )
-//     .not("quiz_deck_id", "is", null)
-//     .order("quiz_decks.lessons.sequence");
-
-//   if (error) throw error;
-
-//   // Type assertion to handle the query result
-//   const typedData = data as unknown as Array<{
-//     attempts: number;
-//     passed: number;
-//     quiz_decks?: {
-//       lessons?: {
-//         sequence: number;
-//         title: string;
-//       };
-//     };
-//   }>;
-
-//   return (typedData || []).map((item) => ({
-//     bardisplay: String(item.quiz_decks?.lessons?.sequence || ""),
-//     tooltipdisplayquiz: `Quiz ${item.quiz_decks?.lessons?.sequence || ""}`,
-//     attempts: Number(item.attempts) || 0,
-//     passed: Number(item.passed) || 0,
-//   }));
-// }
+async function getQuizPerformance() {
+  const supabase = await createClient();
+  // First get all lessons with DISTINCT
+  const { data: lessons, error: lessonsError } = await supabase
+    .from("lessons")
+    .select("id, sequence, title")
+    .order("sequence");
+  if (lessonsError) throw lessonsError;
+  // Get all quiz attempts with their associated quiz_deck_id
+  const { data: quizAttempts, error: attemptsError } = await supabase
+    .from("quiz_attempts")
+    .select("quiz_deck_id, is_passed");
+  if (attemptsError) throw attemptsError;
+  // Get quiz decks with their lesson_id
+  const { data: quizDecks, error: decksError } = await supabase
+    .from("quiz_decks")
+    .select("id, lesson_id");
+  if (decksError) throw decksError;
+  // Process the data
+  const result = (lessons || []).map((lesson) => {
+    // Find quiz decks for this lesson
+    const lessonQuizDecks = quizDecks.filter(
+      (deck) => deck.lesson_id === lesson.id
+    );
+    // Find attempts for these quiz decks
+    const lessonAttempts = quizAttempts.filter((attempt) =>
+      lessonQuizDecks.some((deck) => deck.id === attempt.quiz_deck_id)
+    );
+    // Calculate statistics
+    const totalAttempts = lessonAttempts.length;
+    const passedAttempts = lessonAttempts.filter(
+      (attempt) => attempt.is_passed
+    ).length;
+  
+    return {
+      bardisplay: String(lesson.sequence || ""),
+      tooltipdisplayquiz: `Quiz ${lesson.sequence || ""}`,
+      attempts: totalAttempts,
+      passed: passedAttempts,
+    };
+  });
+  return result;
+}
 
 // async function getLessonCompletion() {
 //   const supabase = await createClient();
@@ -146,12 +149,13 @@ export async function getDashboardData() {
   const totalUsers = await getTotalUsers();
   const averageQuizScore = await getAverageQuizScore();
   const totalActiveUsers = await getActiveUsers();
+  const quizPerformance = await getQuizPerformance();
 
   return {
     totalUsers: totalUsers,
     averageQuizScore: averageQuizScore,
     totalActiveUsers: totalActiveUsers,
-    // quizPerformance: await getQuizPerformance(),
+    quizPerformance: quizPerformance,
     // lessonCompletion: await getLessonCompletion(),
   };
 }
