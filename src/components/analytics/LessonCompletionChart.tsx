@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { BookCheck, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -27,28 +27,24 @@ import {
 import { LessonCompletionProps } from "@/app/admin/dashboard/dashboard.schema";
 
 const chartData = [
-  { lesson: "Lesson 1", users: 186 },
-  { lesson: "Lesson 2", users: 305 },
-  { lesson: "Lesson 3", users: 237 },
-  { lesson: "Lesson 4", users: 153 },
-  { lesson: "Lesson 5", users: 209 },
-  { lesson: "Lesson 6", users: 214 },
-  { lesson: "Lesson 7", users: 186 },
-  { lesson: "Lesson 8", users: 305 },
-  { lesson: "Lesson 9", users: 237 },
-  { lesson: "Lesson 10", users: 123 },
-  { lesson: "Lesson 11", users: 209 },
-  { lesson: "Lesson 12", users: 214 },
+  { lesson: "Lesson 1", users: 186, totalUsers: 400 },
+  { lesson: "Lesson 2", users: 305, totalUsers: 400 },
+  { lesson: "Lesson 3", users: 237, totalUsers: 400 },
+  { lesson: "Lesson 4", users: 153, totalUsers: 400 },
+  { lesson: "Lesson 5", users: 209, totalUsers: 400 },
+  { lesson: "Lesson 6", users: 214, totalUsers: 400 },
+  { lesson: "Lesson 7", users: 186, totalUsers: 400 },
+  { lesson: "Lesson 8", users: 305, totalUsers: 400 },
+  { lesson: "Lesson 9", users: 237, totalUsers: 400 },
+  { lesson: "Lesson 10", users: 123, totalUsers: 400 },
+  { lesson: "Lesson 11", users: 209, totalUsers: 400 },
+  { lesson: "Lesson 12", users: 214, totalUsers: 400 },
 ];
 
 const chartConfig = {
   users: {
-    label: "Desktop",
+    label: "Users",
     color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
   },
   label: {
     color: "hsl(var(--background))",
@@ -56,6 +52,20 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function LessonCompletion({ data }: LessonCompletionProps) {
+  const averageCompletion =
+    (data.reduce((acc, curr) => acc + curr.users / curr.totalUsers, 0) /
+      data.length) *
+    100;
+
+  const totalEnrolledStudents = data[0].totalUsers;
+  const averageStudentsPerLesson = Math.round(
+    data.reduce((acc, curr) => acc + curr.users, 0) / data.length
+  );
+  const completionRate =
+    (data.reduce((acc, curr) => acc + curr.users / curr.totalUsers, 0) /
+      data.length) *
+    100;
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -117,10 +127,16 @@ export function LessonCompletion({ data }: LessonCompletionProps) {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this lesson <TrendingUp className="h-4 w-4" />
+          Average Lesson Completion Rate {averageCompletion.toFixed(1)}%{" "}
+          <BookCheck className="h-4 w-4" />
         </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 lessons
+        <div className="leading-none text-muted-foreground flex flex-col gap-1">
+          <span>
+            We currently have {totalEnrolledStudents.toLocaleString()} students
+            enrolled in the course. On average{" "}
+            {averageStudentsPerLesson.toLocaleString()} students complete each
+            lesson
+          </span>
         </div>
       </CardFooter>
     </Card>

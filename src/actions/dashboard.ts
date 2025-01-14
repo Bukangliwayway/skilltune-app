@@ -6,8 +6,13 @@ async function getTotalUsers() {
 
   const { count, error } = await supabase
     .from("users")
-    .select("*", { count: "exact", head: true });
+    .select("*", { count: "exact", head: true })
+    .eq("type", "USER");
 
+  if (error) {
+    console.error("Error fetching total users:", error);
+    return 0;
+  }
   if (error) throw error;
 
   return count || 0;
@@ -92,70 +97,83 @@ async function getQuizPerformance() {
     const passedAttempts = lessonAttempts.filter(
       (attempt) => attempt.is_passed
     ).length;
-  
+
     return {
       bardisplay: String(lesson.sequence || ""),
-      tooltipdisplayquiz: `Quiz ${lesson.sequence || ""}`,
-      attempts: totalAttempts,
-      passed: passedAttempts,
+      tooltipdisplayquiz: `${lesson.title}`,
+      attempts: totalAttempts as number,
+      passed: passedAttempts as number,
     };
   });
   return result;
 }
 
-// async function getLessonCompletion() {
-//   const supabase = await createClient();
+async function getLessonCompletion() {
+  const supabase = await createClient();
 
-//   const { data, error } = await supabase
-//     .from("learning_progress")
-//     .select(
-//       `
-//       count:count(distinct user_id),
-//       lessons (
-//         sequence,
-//         title
-//       )
-//     `
-//     )
-//     .eq("lesson_completed", 1)
-//     .not("lesson_completed_at", "is", null)
-//     .order("lessons.sequence");
+  // First get all lessons, ordered by sequence
+  const { data: lessons, error: lessonsError } = await supabase
+    .from("lessons")
+    .select("id, sequence, title")
+    .order("sequence");
+  if (lessonsError) throw lessonsError;
 
-//   if (error) throw error;
+  // Get all completed learning progress entries
+  const { data: progress, error: progressError } = await supabase
+    .from("learning_progress")
+    .select("lesson_id, user_id")
+    .not("lesson_completed_at", "is", null); // Only get completed lessons
+  if (progressError) throw progressError;
 
-//   interface LessonData {
-//     count: number;
-//     lessons?: {
-//       sequence: number;
-//       title: string;
-//     };
-//   }
+  const { count: totalUsers, error } = await supabase
+    .from("users")
+    .select("*", { count: "exact", head: true })
+    .eq("type", "USER");
 
-//   interface LessonCompletionResult {
-//     lesson: string;
-//     users: number;
-//   }
+  if (error) {
+    console.error("Error fetching total users:", error);
+    return 0;
+  }
 
-//   // Type assertion for the query result
-//   return ((data as unknown as LessonData[]) || []).map(
-//     (item): LessonCompletionResult => ({
-//       lesson: `Lesson ${item.lessons?.sequence || ""}`,
-//       users: Number(item.count) || 0,
-//     })
-//   );
-// }
+  interface LessonCompletionResult {
+    lesson: string;
+    users: number;
+    totalUsers: number;
+  }
+
+  // Process the data
+  const result = (lessons || []).map((lesson): LessonCompletionResult => {
+    // Find all progress entries for this lesson
+    const lessonProgress = progress.filter(
+      (entry) => entry.lesson_id === lesson.id
+    );
+
+    // Count unique users who completed this lesson
+    const uniqueUsers = new Set(lessonProgress.map((entry) => entry.user_id))
+      .size;
+
+    return {
+      lesson: `Lesson ${lesson.sequence || ""}`,
+      users: uniqueUsers,
+      totalUsers: totalUsers || 0,
+    };
+  });
+
+  return result;
+}
 
 export async function getDashboardData() {
   const totalUsers = await getTotalUsers();
   const averageQuizScore = await getAverageQuizScore();
   const totalActiveUsers = await getActiveUsers();
   const quizPerformance = await getQuizPerformance();
+  const lessonCompletion = await getLessonCompletion();
 
   return {
     totalUsers: totalUsers,
     averageQuizScore: averageQuizScore,
     totalActiveUsers: totalActiveUsers,
     quizPerformance: quizPerformance,
-    // lessonCompletion: await getLessonCompletion(),
+    lessonCompletion: lessonCompletion,
   };
 }

@@ -12,6 +12,7 @@ export type QuizPerformanceProps = {
 export type LessonCompletionData = {
   lesson: string;
   users: number;
+  totalUsers: number;
 };
 
 export type LessonCompletionProps = {
@@ -26,12 +27,14 @@ export type dashboard = {
   };
   totalActiveUsers: number;
   quizPerformance: {
-    quiz: string;
-    pass: number;
+    bardisplay: string;
+    tooltipdisplayquiz: string;
     attempts: number;
+    passed: number;
   }[];
   lessonCompletion: {
     lesson: string;
     users: number;
+    totalUsers: number;
   }[];
 };

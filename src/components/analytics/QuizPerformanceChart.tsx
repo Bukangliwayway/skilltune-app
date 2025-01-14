@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { Award, TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -68,6 +68,19 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function QuizPerformance({ data }: QuizPerformanceProps) {
+  const averagePassingRate = data.reduce(
+    (acc, curr) => ({
+      totalPassed: acc.totalPassed + curr.passed,
+      totalAttempts: acc.totalAttempts + curr.attempts,
+    }),
+    { totalPassed: 0, totalAttempts: 0 }
+  );
+
+  const passingRatePercentage =
+    averagePassingRate.totalAttempts > 0
+      ? (averagePassingRate.totalPassed / averagePassingRate.totalAttempts) *
+        100
+      : 0;
   return (
     <Card className="col-span-2 h-full">
       <CardHeader>
@@ -143,10 +156,11 @@ export function QuizPerformance({ data }: QuizPerformanceProps) {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this quiz <TrendingUp className="h-4 w-4" />
+          Overall Quiz Performance Rate {passingRatePercentage.toFixed(1)}%{" "}
+          <Award className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 quizs
+        Analysis based on {data.length} quiz submissions
         </div>
       </CardFooter>
     </Card>

@@ -36,7 +36,7 @@ const MainDashboard: FC<Props> = ({ dashboard }) => {
               {dashboard?.totalUsers ?? 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              Total number of users registered on the platform
+              Total number of learners registered on the platform
             </p>
           </CardContent>
         </Card>
