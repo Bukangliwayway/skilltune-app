@@ -26,7 +26,10 @@ const LessonsPageComponent: FC<Props> = ({ lessons }) => {
           onClick={async (e) => {
             e.preventDefault();
             setisCreating(true);
-            await createNewLesson();
+            const data = await createNewLesson();
+            if (data) {
+              redirect(`/admin/lessons/${data.id}`);
+            }
             setisCreating(false);
           }}
         >

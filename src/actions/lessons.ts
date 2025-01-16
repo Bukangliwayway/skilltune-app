@@ -71,7 +71,7 @@ export const createNewLesson = async () => {
 
   if (error) throw new Error(`Error creating lesson: ${error.message}`);
 
-  if (data) redirect(`/admin/lessons/${data.id}`);
+  // if (data) redirect(`/admin/lessons/${data.id}`);
   return data;
 };
 
