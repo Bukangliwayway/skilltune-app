@@ -1,5 +1,4 @@
 import { getAllLessons } from "@/actions/lessons";
-import { Button } from "@/components/ui/button";
 import React from "react";
 import LessonsPageComponent from "./page-component";
 

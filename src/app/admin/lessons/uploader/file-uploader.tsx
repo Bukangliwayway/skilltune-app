@@ -42,7 +42,7 @@ function createUppy(type: FileType) {
     },
   });
 
-  // @ts-ignore
+  // @ts-expect-error
   return uppy.use(AwsS3, {
     shouldUseMultipart(file) {
       // Use multipart only for files larger than 100MiB.

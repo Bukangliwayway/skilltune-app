@@ -3,7 +3,6 @@
 import { CreateQuizSchemaServer } from "@/app/admin/quizzes/quizzes.schema";
 import {
   QuizCsvRow,
-  QuizDeckDB,
   QuizDeckResponse,
   QuizzesResponse,
   UpdateQuizSchema,
@@ -56,7 +55,7 @@ export const createQuiz = async ({
   return response;
 };
 
-export const deleteQuiz = async (id: Number) => {
+export const deleteQuiz = async (id: number) => {
   const supabase = await createClient();
   const { error } = await supabase.from("quiz_decks").delete().match({ id });
 
@@ -67,7 +66,7 @@ export const deleteQuiz = async (id: Number) => {
   revalidatePath("/admin/quizzes");
 };
 
-export const getQuizById = async (id: Number) => {
+export const getQuizById = async (id: number) => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("quiz_decks")

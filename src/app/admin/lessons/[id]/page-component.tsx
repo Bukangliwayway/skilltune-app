@@ -127,6 +127,7 @@ export default function UpdateLessonPageComponent({
   // File Download Handlers
   const handleFileDownload = (url: string, filename: string) => {
     window.open(url, "_blank");
+    console.log("Downloading file:", filename);
   };
 
   // Initial Data Fetch

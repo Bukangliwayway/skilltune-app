@@ -2,8 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { MousePointer, PlusCircle } from "lucide-react";
 import { FC, useState } from "react";
-import { Lesson, LessonsResponse } from "./lessons.types";
-import { redirect, useRouter } from "next/navigation";
+import { LessonsResponse } from "./lessons.types";
+import { redirect } from "next/navigation";
 import { createNewLesson } from "@/actions/lessons";
 
 type Props = {

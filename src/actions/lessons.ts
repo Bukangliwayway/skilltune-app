@@ -123,7 +123,7 @@ export const deleteAsset = async (key: string) => {
   await deleteFile(key);
 };
 
-export const deleteLesson = async (id: Number) => {
+export const deleteLesson = async (id: number) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("lessons")

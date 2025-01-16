@@ -80,7 +80,7 @@ export async function getThumbnailDownloadUrl(key: string) {
     const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
     return { url };
   } catch (error) {
-    return { error: "Failed to generate thumbnail download URL" };
+    return { error: "Failed to generate thumbnail download URL" + error };
   }
 }
 
@@ -94,6 +94,7 @@ export async function checkS3ObjectExists(key: string): Promise<boolean> {
     );
     return true;
   } catch (error) {
+    console.log("Error checking S3 object:", error);
     return false;
   }
 }
@@ -109,6 +110,6 @@ export async function deleteFile(key: string) {
 
     return { success: true };
   } catch (error) {
-    return { error: "Failed to delete file from S3 Bucket" };
+    return { error: "Failed to delete file from S3 Bucket: " + error };
   }
 }

@@ -1,10 +1,8 @@
 import { Header } from "@/components/ui/header";
 import { RenderMounted } from "@/components/ui/render-mounted";
-import { ADMIN } from "@/contants/contants";
 import { createClient } from "@/supabase/server";
-import { redirect } from "next/navigation";
 import { ReactNode } from "react";
- 
+
 export default async function AdminLayout({
   children,
 }: Readonly<{

@@ -78,7 +78,7 @@ export const authenticate = async (
 export const handleSignInWithGoogle = async () => {
   const supabase = await createClient();
   const provider = "google";
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { data } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
       redirectTo:
@@ -86,10 +86,6 @@ export const handleSignInWithGoogle = async () => {
         "http://localhost:3000/auth/callback",
     },
   });
-
-  if (error) {
-    return error;
-  }
 
   if (data.url) {
     redirect(data.url);

@@ -46,7 +46,7 @@ async function getActiveUsers() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data, count, error } = await supabase
+    const { data, error } = await supabase
       .from("learning_progress")
       .select("user_id", {
         count: "exact",
