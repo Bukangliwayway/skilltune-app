@@ -42,7 +42,7 @@ function createUppy(type: FileType) {
     },
   });
 
-  // @ts-expect-error
+  // @ts-expect-error - Uppy AWS S3 plugin types are incompatible with current TypeScript version
   return uppy.use(AwsS3, {
     shouldUseMultipart(file) {
       // Use multipart only for files larger than 100MiB.
