@@ -69,10 +69,14 @@ export default function Auth() {
   };
 
   const handleGoogleSignIn = async () => {
+    setIsAuthenticating(true);
+
     try {
       await handleSignInWithGoogle();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
