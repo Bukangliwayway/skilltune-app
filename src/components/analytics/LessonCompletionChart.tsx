@@ -1,6 +1,6 @@
 "use client";
 
-import { BookCheck, TrendingUp } from "lucide-react";
+import { BookCheck } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -13,7 +13,6 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -25,21 +24,6 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { LessonCompletionProps } from "@/app/admin/dashboard/dashboard.schema";
-
-const chartData = [
-  { lesson: "Lesson 1", users: 186, totalUsers: 400 },
-  { lesson: "Lesson 2", users: 305, totalUsers: 400 },
-  { lesson: "Lesson 3", users: 237, totalUsers: 400 },
-  { lesson: "Lesson 4", users: 153, totalUsers: 400 },
-  { lesson: "Lesson 5", users: 209, totalUsers: 400 },
-  { lesson: "Lesson 6", users: 214, totalUsers: 400 },
-  { lesson: "Lesson 7", users: 186, totalUsers: 400 },
-  { lesson: "Lesson 8", users: 305, totalUsers: 400 },
-  { lesson: "Lesson 9", users: 237, totalUsers: 400 },
-  { lesson: "Lesson 10", users: 123, totalUsers: 400 },
-  { lesson: "Lesson 11", users: 209, totalUsers: 400 },
-  { lesson: "Lesson 12", users: 214, totalUsers: 400 },
-];
 
 const chartConfig = {
   users: {
@@ -75,7 +59,7 @@ export function LessonCompletion({ data }: LessonCompletionProps) {
         <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             accessibilityLayer
-            data={data ?? chartData}
+            data={data}
             layout="vertical"
             margin={{
               right: 60,

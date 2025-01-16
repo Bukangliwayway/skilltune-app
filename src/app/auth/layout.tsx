@@ -1,8 +1,8 @@
+import { LoadingOverlay } from "@/components/loadingOverlay";
 import { ADMIN } from "@/contants/contants";
 import { createClient } from "@/supabase/server";
-import { log } from "console";
 import { redirect } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 export default async function AuthLayout({
   children,
@@ -28,5 +28,9 @@ export default async function AuthLayout({
     if (data.type === ADMIN) return redirect("/admin");
   }
 
-  return <>{children}</>;
+  return (
+    <Suspense fallback={<LoadingOverlay isLoading={true} />}>
+      {children}
+    </Suspense>
+  );
 }

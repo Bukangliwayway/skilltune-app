@@ -26,36 +26,6 @@ import {
 } from "@/components/ui/chart";
 import { QuizPerformanceProps } from "@/app/admin/dashboard/dashboard.schema";
 
-const chartData = [
-  { bardisplay: "1", tooltipdisplayquiz: "Quiz 1", attempts: 186, passed: 80 },
-  { bardisplay: "2", tooltipdisplayquiz: "Quiz 2", attempts: 305, passed: 200 },
-  { bardisplay: "3", tooltipdisplayquiz: "Quiz 3", attempts: 237, passed: 120 },
-  { bardisplay: "4", tooltipdisplayquiz: "Quiz 4", attempts: 230, passed: 190 },
-  { bardisplay: "5", tooltipdisplayquiz: "Quiz 5", attempts: 209, passed: 130 },
-  { bardisplay: "6", tooltipdisplayquiz: "Quiz 6", attempts: 214, passed: 140 },
-  { bardisplay: "7", tooltipdisplayquiz: "Quiz 7", attempts: 186, passed: 80 },
-  { bardisplay: "8", tooltipdisplayquiz: "Quiz 8", attempts: 305, passed: 200 },
-  { bardisplay: "9", tooltipdisplayquiz: "Quiz 9", attempts: 237, passed: 120 },
-  {
-    bardisplay: "10",
-    tooltipdisplayquiz: "Quiz 10",
-    attempts: 273,
-    passed: 190,
-  },
-  {
-    bardisplay: "11",
-    tooltipdisplayquiz: "Quiz 11",
-    attempts: 209,
-    passed: 130,
-  },
-  {
-    bardisplay: "12",
-    tooltipdisplayquiz: "Quiz 12",
-    attempts: 214,
-    passed: 140,
-  },
-];
-
 const chartConfig = {
   attempts: {
     label: "attempts",
@@ -91,7 +61,7 @@ export function QuizPerformance({ data }: QuizPerformanceProps) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               accessibilityLayer
-              data={data ?? chartData}
+              data={data}
               margin={{
                 top: 20,
                 right: 30,
@@ -160,7 +130,7 @@ export function QuizPerformance({ data }: QuizPerformanceProps) {
           <Award className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-        Analysis based on {data.length} quiz submissions
+          Analysis based on {data.length} quiz submissions
         </div>
       </CardFooter>
     </Card>
