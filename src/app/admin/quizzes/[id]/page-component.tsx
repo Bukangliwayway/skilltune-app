@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getQuizById } from "@/actions/quizzes";
 import type { QuizDisplay } from "../quizzes.types";
 
-export async function QuizDetailView({ params }: { params: { id: string } }) {
+interface QuizDetailViewProps {
+  params: {
+    id: string;
+  };
+}
+
+export async function QuizDetailView({ params }: QuizDetailViewProps) {
   const quizData = await getQuizById(Number(params.id));
   const quiz = quizData[0] as QuizDisplay;
 
