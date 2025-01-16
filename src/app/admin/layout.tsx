@@ -1,7 +1,8 @@
+import { LoadingOverlay } from "@/components/loadingOverlay";
 import { Header } from "@/components/ui/header";
 import { RenderMounted } from "@/components/ui/render-mounted";
 import { createClient } from "@/supabase/server";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 export default async function AdminLayout({
   children,
@@ -29,7 +30,11 @@ export default async function AdminLayout({
   return (
     <RenderMounted>
       <Header />
-      <main className="min-h-[calc(100svh-128px)] py-3">{children}</main>
+      <main className="min-h-[calc(100svh-128px)] py-3">
+        <Suspense fallback={<LoadingOverlay isLoading={true} />}>
+          {children}
+        </Suspense>
+      </main>
     </RenderMounted>
   );
 }
