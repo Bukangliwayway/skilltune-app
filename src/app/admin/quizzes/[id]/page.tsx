@@ -1,5 +1,10 @@
 import { QuizDetailView } from "./page-component";
 
-export default function Page({ params }: { params: { id: string } }) {
-  return <QuizDetailView params={params} />;
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function Page({ params }: PageProps) {
+  const { id } = await params;
+  return <QuizDetailView params={{ id }} />;
 }
