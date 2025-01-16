@@ -81,9 +81,7 @@ export const handleSignInWithGoogle = async () => {
   const { data } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo:
-        process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL ||
-        "http://localhost:3000/auth/callback",
+      redirectTo: process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL,
     },
   });
 
