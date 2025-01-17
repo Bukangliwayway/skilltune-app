@@ -38,7 +38,7 @@ export async function QuizDetailView({ params }: QuizDetailViewProps) {
                     className={`p-4 rounded-lg border ${
                       card.correct_choice_id === choice.id
                         ? "bg-green-600 text-white"
-                        : "bg-white hover:bg-gray-50"
+                        : " hover:bg-gray-50"
                     } cursor-pointer transition-colors duration-200`}
                   >
                     <p className="text-lg">{choice.choice}</p>
