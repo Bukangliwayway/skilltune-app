@@ -76,3 +76,17 @@ export type QuizDisplay = {
   csv_version: string;
   quiz_cards: QuizCard[];
 };
+
+export type FileUploadSuccess = {
+  status: "success";
+  quizCards: Array<QuizCard>;
+  csvUrl: string;
+  totalProcessed: number;
+};
+
+export type FileUploadError = {
+  status: "error";
+  error: string;
+};
+
+export type FileUploadResponse = FileUploadSuccess | FileUploadError;

@@ -95,14 +95,22 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
         const formData = new FormData();
         formData.append("file", file);
 
-        const uploadedUrl = await fileUploadHandler(
+        const response = await fileUploadHandler(
           formData,
           id ? parseInt(id) : null
         );
-        csvUrl = uploadedUrl?.csvUrl || "";
+
+        if (response.status === "error") {
+          toast.error(response.error);
+          return;
+        }
+
+        const uploadedUrl = response.csvUrl;
+
+        csvUrl = uploadedUrl || "";
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : "Upload failed");
-        return;
+        toast.error("An unexpected error occurred while uploading the file");
+        console.error("Upload error:", error);
       }
     }
 

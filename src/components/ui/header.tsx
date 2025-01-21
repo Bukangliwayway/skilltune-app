@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChartNoAxesCombined, CircleUser, Menu, Moon, Package2, Search, Sun, TrendingUp } from "lucide-react";
+import {
+  ChartNoAxesCombined,
+  CircleUser,
+  Menu,
+  Moon,
+  Package2,
+  Search,
+  Sun,
+  TrendingUp,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +22,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { createClient } from "@/supabase/client";
@@ -51,7 +66,7 @@ export const Header = () => {
             className={cn(
               "transition-colors hover:text-foreground text-muted-foreground",
               {
-                "text-foreground font-bold": pathname === href,
+                "text-foreground font-bold": pathname.startsWith(href),
               }
             )}
           >

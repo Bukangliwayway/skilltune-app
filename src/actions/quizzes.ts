@@ -2,6 +2,7 @@
 
 import { CreateQuizSchemaServer } from "@/app/admin/quizzes/quizzes.schema";
 import {
+  FileUploadResponse,
   QuizCsvRow,
   QuizDeckResponse,
   QuizzesResponse,
@@ -9,18 +10,6 @@ import {
 } from "@/app/admin/quizzes/quizzes.types";
 import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
-
-const withErrorHandling =
-  (serverAction: Function) =>
-  async (...args: any[]) => {
-    try {
-      return await serverAction(...args);
-    } catch (error) {
-      return {
-        error: error instanceof Error ? error.message : "An error occurred",
-      };
-    }
-  };
 
 export const getAllQuizzes = async (): Promise<QuizzesResponse> => {
   const supabase = await createClient();
@@ -112,8 +101,6 @@ const EXPECTED_HEADERS = [
   "sequence",
 ];
 
-withErrorHandling
-
 function preprocessCSVRow(row: string[]): string[] {
   // Find indices where we need to merge split explanation
   let startIndex = -1;
@@ -145,7 +132,6 @@ function preprocessCSVRow(row: string[]): string[] {
 
   return row;
 }
-
 
 const validateQuizRow = (row: string[], headers?: string[]): QuizCsvRow => {
   // Validate headers if provided
@@ -240,15 +226,18 @@ export const updateQuizDeckIdForCards = async (newQuizDeckId: number) => {
   return updatedCards;
 };
 
-export const fileUploadHandler = withErrorHandling(async (
+export const fileUploadHandler = async (
   formData: FormData,
   quiz_deck_id: number | null
-) => {
+): Promise<FileUploadResponse> => {
   const supabase = await createClient();
-  if (!formData) return;
-  if (!(formData instanceof FormData))
-    throw new Error("Expected a FormData object");
-
+  if (!formData) return { status: "error", error: "No file provided" };
+  if (!(formData instanceof FormData)) {
+    return {
+      status: "error",
+      error: "Expected a FormData object",
+    };
+  }
   const ACCEPTED_CSV_TYPES = [
     "text/csv",
     "application/vnd.ms-excel",
@@ -256,10 +245,18 @@ export const fileUploadHandler = withErrorHandling(async (
     "application/vnd.oasis.opendocument.spreadsheet",
   ];
   const fileEntry = formData.get("file");
-  if (!(fileEntry instanceof File)) throw new Error("Expected a file");
+  if (!(fileEntry instanceof File)) {
+    return {
+      status: "error",
+      error: "Expected a file",
+    };
+  }
 
   if (!ACCEPTED_CSV_TYPES.includes(fileEntry.type)) {
-    throw new Error("Invalid file format. Only CSV is accepted");
+    return {
+      status: "error",
+      error: "Invalid file format. Only CSV is accepted",
+    };
   }
 
   if (quiz_deck_id !== null) {
@@ -302,7 +299,10 @@ export const fileUploadHandler = withErrorHandling(async (
       .map((row) => row.split(",").map((cell) => cell.trim()));
 
     if (rows.length < 2) {
-      throw new Error("CSV must contain headers and at least one data row");
+      return {
+        status: "error",
+        error: "CSV must contain headers and at least one data row",
+      };
     }
 
     const headers = rows[0].map((header) => header.toLowerCase());
@@ -363,7 +363,12 @@ export const fileUploadHandler = withErrorHandling(async (
 
         // Find the correct choice ID
         const correctChoice = choicesData.find((choice) => choice.is_correct);
-        if (!correctChoice) throw new Error("No correct choice found");
+        if (!correctChoice) {
+          return {
+            status: "error",
+            error: "No correct choice found",
+          };
+        }
 
         // Update quiz card with correct_choice_id
         const { error: updateError } = await supabase
@@ -378,9 +383,12 @@ export const fileUploadHandler = withErrorHandling(async (
           choices: choicesData,
         });
       } catch (error) {
-        // Log the specific row that failed
-        console.error(`Error processing row: ${question.join(",")}`);
-        throw error;
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          status: "error",
+          error: `Error processing row: ${errorMessage}`,
+        };
       }
     }
 
@@ -402,16 +410,19 @@ export const fileUploadHandler = withErrorHandling(async (
       .getPublicUrl(fileData.path);
 
     return {
+      status: "success",
       quizCards: createdQuizCards,
       csvUrl: publicUrl,
       totalProcessed: createdQuizCards.length,
     };
   } catch (error) {
-    console.error(`Error processing CSV:`, error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error processing CSV: ${errorMessage}`);
+    return {
+      status: "error",
+      error: `Error processing CSV: ${errorMessage}`,
+    };
   }
-});
+};
 
 export const updateQuiz = async ({
   id,
