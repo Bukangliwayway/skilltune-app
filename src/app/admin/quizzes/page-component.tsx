@@ -8,7 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MousePointer, PlusCircle } from "lucide-react";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { QuizzesResponse } from "./quizzes.types";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,6 +35,15 @@ type Props = {
 };
 
 const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.refresh();
+    return () => {
+      router.prefetch("/admin/lessons");
+    };
+  }, [router]);
+
   const [openQuizId, setOpenQuizId] = useState<number | null>(null);
 
   const [currentQuiz, setCurrentQuiz] =
@@ -51,8 +60,6 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
       intent: "create",
     },
   });
-
-  const router = useRouter();
 
   const deleteQuizHandler = async (id: number): Promise<void> => {
     try {

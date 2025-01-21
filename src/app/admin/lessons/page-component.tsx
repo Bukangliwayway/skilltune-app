@@ -1,9 +1,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { MousePointer, PlusCircle } from "lucide-react";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { LessonsResponse } from "./lessons.types";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { createNewLesson } from "@/actions/lessons";
 
 type Props = {
@@ -11,6 +11,15 @@ type Props = {
 };
 
 const LessonsPageComponent: FC<Props> = ({ lessons }) => {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.refresh();
+    return () => {
+      router.prefetch("/admin/lessons");
+    };
+  }, [router]);
+
   const [isCreating, setisCreating] = useState(false);
   return (
     <>
