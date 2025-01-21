@@ -90,3 +90,22 @@ export type FileUploadError = {
 };
 
 export type FileUploadResponse = FileUploadSuccess | FileUploadError;
+
+export type BatchQuizCard = {
+  question: string;
+  explanation: string;
+  item_score: number;
+  quiz_deck_id: number | null;
+  sequence: number;
+};
+
+export type BatchChoice = {
+  choice: string;
+  is_correct: boolean;
+  quiz_card_id?: number;
+};
+
+export type ProcessedQuizRow = {
+  quizCard: BatchQuizCard;
+  choices: BatchChoice[];
+};
