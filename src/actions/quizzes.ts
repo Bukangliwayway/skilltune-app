@@ -10,6 +10,18 @@ import {
 import { createClient } from "@/supabase/server";
 import { revalidatePath } from "next/cache";
 
+const withErrorHandling =
+  (serverAction: Function) =>
+  async (...args: any[]) => {
+    try {
+      return await serverAction(...args);
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : "An error occurred",
+      };
+    }
+  };
+
 export const getAllQuizzes = async (): Promise<QuizzesResponse> => {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -100,6 +112,8 @@ const EXPECTED_HEADERS = [
   "sequence",
 ];
 
+withErrorHandling
+
 function preprocessCSVRow(row: string[]): string[] {
   // Find indices where we need to merge split explanation
   let startIndex = -1;
@@ -131,6 +145,7 @@ function preprocessCSVRow(row: string[]): string[] {
 
   return row;
 }
+
 
 const validateQuizRow = (row: string[], headers?: string[]): QuizCsvRow => {
   // Validate headers if provided
@@ -225,7 +240,7 @@ export const updateQuizDeckIdForCards = async (newQuizDeckId: number) => {
   return updatedCards;
 };
 
-export const fileUploadHandler = async (
+export const fileUploadHandler = withErrorHandling(async (
   formData: FormData,
   quiz_deck_id: number | null
 ) => {
@@ -396,7 +411,7 @@ export const fileUploadHandler = async (
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Error processing CSV: ${errorMessage}`);
   }
-};
+});
 
 export const updateQuiz = async ({
   id,
