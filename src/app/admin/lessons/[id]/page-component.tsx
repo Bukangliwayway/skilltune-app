@@ -73,7 +73,9 @@ export default function UpdateLessonPageComponent({
       toast.success("Video deleted successfully");
       setVideoFile(null);
     } catch (error) {
-      console.error("Error deleting video:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error deleting video"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +88,9 @@ export default function UpdateLessonPageComponent({
       setPdfFile(null);
       toast.success("PDF deleted successfully");
     } catch (error) {
-      console.error("Error deleting PDF:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error deleting PDF"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -105,8 +109,9 @@ export default function UpdateLessonPageComponent({
       router.push(`/admin/lessons/`);
       toast.success("Lesson updated successfully");
     } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Error submitting lesson");
+      toast.error(
+        error instanceof Error ? error.message : "Error submitting lesson"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -118,7 +123,9 @@ export default function UpdateLessonPageComponent({
       setIsLoading(true);
       await deleteLesson(id);
     } catch (error) {
-      console.error("Error deleting lesson:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error deleting lesson"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +146,9 @@ export default function UpdateLessonPageComponent({
         // Set form data
         // Set PDF and video files
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error fetching data"
+        );
       } finally {
         setIsLoading(false);
       }

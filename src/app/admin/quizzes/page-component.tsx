@@ -4,14 +4,13 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { MousePointer, PlusCircle } from "lucide-react";
-import { FC, useCallback, useState } from "react";
+import { FC, useState } from "react";
 import { QuizzesResponse } from "./quizzes.types";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import {
@@ -67,8 +66,9 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
       setOpenQuizId(null);
       toast.success("Quiz deleted successfully");
     } catch (error) {
-      console.error("Error deleting lesson:", error);
-      toast.error("Failed to delete lesson");
+      toast.error(
+        error instanceof Error ? error.message : "Error deleting lesson"
+      );
     }
   };
 
@@ -94,8 +94,8 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
         );
         csvUrl = uploadedUrl?.csvUrl || "";
       } catch (error) {
-        console.error("Error uploading PDF:", error);
-        throw error;
+        toast.error(error instanceof Error ? error.message : "Upload failed");
+        return;
       }
     }
 
@@ -133,8 +133,9 @@ const QuizzesPageComponent: FC<Props> = ({ quizzes, lessons }) => {
         }
       }
     } catch (error) {
-      toast.error("Error submitting lesson");
-      console.error("Error submitting lesson:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error submitting lesson"
+      );
     }
   };
 

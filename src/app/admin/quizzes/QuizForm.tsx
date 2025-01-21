@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { LessonsResponse } from "../lessons/lessons.types";
 import { Quiz } from "./quizzes.types";
+import { toast } from "sonner";
 
 type QuizFormProps = {
   form: UseFormReturn<CreateOrUpdateQuizSchema>;
@@ -50,15 +51,14 @@ export const QuizForm = ({
 
   const handleDelete = async () => {
     const id = parseInt(form.getValues("id") || "0");
-    console.log("Delete button clicked");
-    console.log(onDelete);
-
     if (onDelete && !isNaN(id)) {
       try {
         await onDelete(id);
         setIsDeleteModalOpen(false);
       } catch (error) {
-        console.error("Error in handleDelete:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Error deleting lesson"
+        );
       }
     }
   };
