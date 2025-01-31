@@ -233,11 +233,6 @@ export const fileUploadHandler = async (
       })
     );
 
-    // Using implicit transactions by chaining operations
-    let createdQuizCards;
-    let createdChoices;
-    let fileData;
-
     // If updating existing quiz deck, delete old data in batch
     if (quiz_deck_id !== null) {
       const { data: existingCards, error: fetchError } = await supabase
@@ -281,7 +276,7 @@ export const fileUploadHandler = async (
       .select();
 
     if (quizError) throw quizError;
-    createdQuizCards = insertedCards;
+    const createdQuizCards = insertedCards;
 
     // Prepare all choices for batch insertion
     const allChoices = createdQuizCards.flatMap((quizCard, index) =>
@@ -298,7 +293,7 @@ export const fileUploadHandler = async (
       .select();
 
     if (choicesError) throw choicesError;
-    createdChoices = insertedChoices;
+    const createdChoices = insertedChoices;
 
     // Batch update correct_choice_ids
     const updates = createdQuizCards.map((quizCard) => {
@@ -343,7 +338,7 @@ export const fileUploadHandler = async (
       });
 
     if (fileError) throw fileError;
-    fileData = uploadedFile;
+    const fileData = uploadedFile;
 
     const {
       data: { publicUrl },

@@ -25,10 +25,12 @@ export async function QuizDetailView({ params }: QuizDetailViewProps) {
       </div>
 
       <div className="space-y-8">
-        {quiz.quiz_cards.map((card) => (
+        {quiz.quiz_cards.map((card, index) => (
           <Card key={card.id} className="w-full">
             <CardHeader>
-              <CardTitle className="text-xl">{card.question}</CardTitle>
+              <CardTitle className="text-xl">
+                {index + 1}. {card.question}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
