@@ -194,7 +194,6 @@ export async function validateQuizRow(
     ],
   };
 }
-
 export const fileUploadHandler = async (
   formData: FormData,
   quiz_deck_id: number | null
@@ -202,32 +201,13 @@ export const fileUploadHandler = async (
   const supabase = await createClient();
   if (!formData) return { status: "error", error: "No file provided" };
 
-  // Initial validation checks...
   const fileEntry = formData.get("file");
   if (!(fileEntry instanceof File)) {
     return { status: "error", error: "Expected a file" };
   }
 
-  // Clear existing data if quiz_deck_id exists
-  if (quiz_deck_id !== null) {
-    const { data: quizCards, error: fetchError } = await supabase
-      .from("quiz_cards")
-      .select("id")
-      .eq("quiz_deck_id", quiz_deck_id);
-
-    if (fetchError) throw fetchError;
-
-    if (quizCards && quizCards.length > 0) {
-      const cardIds = quizCards.map((card) => card.id);
-      await supabase.from("choices").delete().in("quiz_card_id", cardIds);
-      await supabase
-        .from("quiz_cards")
-        .delete()
-        .eq("quiz_deck_id", quiz_deck_id);
-    }
-  }
-
   try {
+    // Parse and validate CSV data
     const text = await fileEntry.text();
     const rows = text
       .split(/\r?\n/)
@@ -245,7 +225,7 @@ export const fileUploadHandler = async (
     const headers = rows[0];
     const questions = rows.slice(1);
 
-    // Process all rows first with async operations
+    // Process and validate all rows before making any changes
     const processedRows = await Promise.all(
       questions.map(async (row) => {
         const processedRow = await preprocessCSVRow(row);
@@ -253,20 +233,57 @@ export const fileUploadHandler = async (
       })
     );
 
-    // Batch insert quiz cards
+    // Using implicit transactions by chaining operations
+    let createdQuizCards;
+    let createdChoices;
+    let fileData;
+
+    // If updating existing quiz deck, delete old data in batch
+    if (quiz_deck_id !== null) {
+      const { data: existingCards, error: fetchError } = await supabase
+        .from("quiz_cards")
+        .select("id")
+        .eq("quiz_deck_id", quiz_deck_id);
+
+      if (fetchError) throw fetchError;
+
+      if (existingCards && existingCards.length > 0) {
+        const cardIds = existingCards.map((card) => card.id);
+
+        // Delete choices first (foreign key constraint)
+        const { error: choicesDeleteError } = await supabase
+          .from("choices")
+          .delete()
+          .in("quiz_card_id", cardIds);
+
+        if (choicesDeleteError) throw choicesDeleteError;
+
+        // Then delete quiz cards
+        const { error: cardsDeleteError } = await supabase
+          .from("quiz_cards")
+          .delete()
+          .eq("quiz_deck_id", quiz_deck_id);
+
+        if (cardsDeleteError) throw cardsDeleteError;
+      }
+    }
+
+    // Prepare quiz cards for batch insertion
     const quizCards = processedRows.map((row) => ({
       ...row.quizCard,
       quiz_deck_id,
     }));
 
-    const { data: createdQuizCards, error: quizError } = await supabase
+    // Batch insert quiz cards
+    const { data: insertedCards, error: quizError } = await supabase
       .from("quiz_cards")
       .insert(quizCards)
       .select();
 
     if (quizError) throw quizError;
+    createdQuizCards = insertedCards;
 
-    // Prepare choices with quiz_card_ids
+    // Prepare all choices for batch insertion
     const allChoices = createdQuizCards.flatMap((quizCard, index) =>
       processedRows[index].choices.map((choice) => ({
         ...choice,
@@ -275,14 +292,15 @@ export const fileUploadHandler = async (
     );
 
     // Batch insert choices
-    const { data: createdChoices, error: choicesError } = await supabase
+    const { data: insertedChoices, error: choicesError } = await supabase
       .from("choices")
       .insert(allChoices)
       .select();
 
     if (choicesError) throw choicesError;
+    createdChoices = insertedChoices;
 
-    // Update correct_choice_ids in batch
+    // Batch update correct_choice_ids
     const updates = createdQuizCards.map((quizCard) => {
       const cardChoices = createdChoices.filter(
         (choice) => choice.quiz_card_id === quizCard.id
@@ -294,11 +312,30 @@ export const fileUploadHandler = async (
       };
     });
 
-    await supabase.from("quiz_cards").upsert(updates);
+    const { error: updateError } = await supabase
+      .from("quiz_cards")
+      .upsert(updates);
+
+    if (updateError) throw updateError;
+
+    // Calculate and update total score for quiz deck
+    if (quiz_deck_id) {
+      const totalScore = quizCards.reduce(
+        (sum, card) => sum + (card.item_score || 1),
+        0
+      );
+
+      const { error: scoreError } = await supabase
+        .from("quiz_decks")
+        .update({ total_items: totalScore })
+        .eq("id", quiz_deck_id);
+
+      if (scoreError) throw scoreError;
+    }
 
     // Store the CSV file
     const fileName = `quiz-${Date.now()}-${fileEntry.name}`;
-    const { data: fileData, error: fileError } = await supabase.storage
+    const { data: uploadedFile, error: fileError } = await supabase.storage
       .from("skilltuneapp-bucket")
       .upload(fileName, fileEntry, {
         cacheControl: "3600",
@@ -306,6 +343,7 @@ export const fileUploadHandler = async (
       });
 
     if (fileError) throw fileError;
+    fileData = uploadedFile;
 
     const {
       data: { publicUrl },
@@ -332,6 +370,7 @@ export const fileUploadHandler = async (
     };
   }
 };
+
 export const updateQuiz = async ({
   id,
   title,

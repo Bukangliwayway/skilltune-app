@@ -749,7 +749,10 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          lesson_completed: number
+          is_lesson_accessed: boolean
+          is_pdf_viewed: boolean | null
+          is_quiz_passed: boolean
+          is_video_played: boolean
           lesson_completed_at: string | null
           lesson_id: number
           updated_at: string
@@ -758,7 +761,10 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: number
-          lesson_completed: number
+          is_lesson_accessed?: boolean
+          is_pdf_viewed?: boolean | null
+          is_quiz_passed?: boolean
+          is_video_played?: boolean
           lesson_completed_at?: string | null
           lesson_id: number
           updated_at?: string
@@ -767,7 +773,10 @@ export type Database = {
         Update: {
           created_at?: string
           id?: number
-          lesson_completed?: number
+          is_lesson_accessed?: boolean
+          is_pdf_viewed?: boolean | null
+          is_quiz_passed?: boolean
+          is_video_played?: boolean
           lesson_completed_at?: string | null
           lesson_id?: number
           updated_at?: string
@@ -837,6 +846,7 @@ export type Database = {
           is_passed: boolean
           quiz_deck_id: number | null
           score: number | null
+          total: number | null
           user_id: string | null
         }
         Insert: {
@@ -846,6 +856,7 @@ export type Database = {
           is_passed?: boolean
           quiz_deck_id?: number | null
           score?: number | null
+          total?: number | null
           user_id?: string | null
         }
         Update: {
@@ -855,6 +866,7 @@ export type Database = {
           is_passed?: boolean
           quiz_deck_id?: number | null
           score?: number | null
+          total?: number | null
           user_id?: string | null
         }
         Relationships: [
@@ -923,6 +935,7 @@ export type Database = {
           id: number
           lesson_id: number | null
           title: string | null
+          total_items: number | null
         }
         Insert: {
           created_at?: string
@@ -931,6 +944,7 @@ export type Database = {
           id?: number
           lesson_id?: number | null
           title?: string | null
+          total_items?: number | null
         }
         Update: {
           created_at?: string
@@ -939,6 +953,7 @@ export type Database = {
           id?: number
           lesson_id?: number | null
           title?: string | null
+          total_items?: number | null
         }
         Relationships: [
           {
@@ -952,30 +967,41 @@ export type Database = {
       }
       users: {
         Row: {
-          avatar_url: string
+          avatar_url: string | null
           created_at: string | null
           email: string
           id: string
           name: string | null
+          recent_lesson: number | null
           type: string | null
         }
         Insert: {
-          avatar_url: string
+          avatar_url?: string | null
           created_at?: string | null
           email: string
           id: string
           name?: string | null
+          recent_lesson?: number | null
           type?: string | null
         }
         Update: {
-          avatar_url?: string
+          avatar_url?: string | null
           created_at?: string | null
           email?: string
           id?: string
           name?: string | null
+          recent_lesson?: number | null
           type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_recent_lesson_fkey"
+            columns: ["recent_lesson"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

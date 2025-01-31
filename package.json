@@ -38,6 +38,7 @@
     "react-hook-form": "^7.54.0",
     "recharts": "^2.15.0",
     "sonner": "^1.7.1",
+    "supabase": "^2.9.6",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.0.3",
