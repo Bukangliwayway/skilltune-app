@@ -213,7 +213,25 @@ export const fileUploadHandler = async (
       .split(/\r?\n/)
       .map((row) => row.trim())
       .filter((row) => row.length > 0)
-      .map((row) => row.split(",").map((cell) => cell.trim()));
+      .map((row) => {
+        const cells = [];
+        let currentCell = "";
+        let withinQuotes = false;
+
+        for (let char of row) {
+          if (char === '"') {
+            withinQuotes = !withinQuotes;
+          } else if (char === "," && !withinQuotes) {
+            cells.push(currentCell.trim());
+            currentCell = "";
+          } else {
+            currentCell += char;
+          }
+        }
+        // Push the last cell
+        cells.push(currentCell.trim());
+        return cells;
+      });
 
     if (rows.length < 2) {
       return {
